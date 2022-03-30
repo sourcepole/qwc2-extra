@@ -263,7 +263,10 @@ class PlotInfoTool extends React.Component {
                 const bounds = CoordinatesUtils.reprojectBbox(plotInfo[0].bbox, 'EPSG:2056', this.props.map.projection);
                 const zoom = MapUtils.getZoomForExtent(bounds, this.props.map.resolutions, this.props.map.size, 0, this.props.map.scales.length - 1) - 1;
                 this.props.zoomToPoint([0.5 * (bounds[0] + bounds[2]), 0.5 * (bounds[1] + bounds[3])], zoom, 'EPSG:2056');
-                const url = serviceUrl + query.query.replace('$egrid$', egrid);
+                if (!query.query.startsWith('http')) {
+                    query.query = serviceUrl + query.query;
+                }
+                const url = query.query.replace('$egrid$', egrid);
                 this.toggleEgridInfo(query, url);
             }
         }).catch(e => {
