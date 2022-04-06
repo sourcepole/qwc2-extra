@@ -145,7 +145,7 @@ class OerebDocument extends React.Component {
         for (const entry of entries) {
             for (const prov of this.ensureArray(entry.LegalProvisions)) {
                 regulations[this.localizedText(prov.TextAtWeb)] = {
-                    label: this.localizedText(prov.Title) + (prov.OfficialNumber ? ", " + prov.OfficialNumber : ""),
+                    label: this.localizedText(prov.Title) + (prov.OfficialNumber ? ", " + this.localizedText(prov.OfficialNumber) : ""),
                     link: this.localizedText(prov.TextAtWeb)
                 };
                 for (const ref of this.ensureArray(prov.Reference)) {
@@ -163,7 +163,7 @@ class OerebDocument extends React.Component {
                 }
                 respoffices[prov.ResponsibleOffice.OfficeAtWeb] = {
                     label: this.localizedText(prov.ResponsibleOffice.Name),
-                    link: prov.ResponsibleOffice.OfficeAtWeb
+                    link: this.localizedText(prov.ResponsibleOffice.OfficeAtWeb)
                 };
             }
         }
@@ -171,7 +171,7 @@ class OerebDocument extends React.Component {
             respoffices = entries.reduce((res, restr) => {
                 res[restr.ResponsibleOffice.OfficeAtWeb] = {
                     label: this.localizedText(restr.ResponsibleOffice.Name),
-                    link: restr.ResponsibleOffice.OfficeAtWeb
+                    link: this.localizedText(restr.ResponsibleOffice.OfficeAtWeb)
                 };
                 return res;
             }, {});
