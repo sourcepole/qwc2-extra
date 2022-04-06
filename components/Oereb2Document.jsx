@@ -308,7 +308,7 @@ class OerebDocument extends React.Component {
     renderOtherThemes = (themes) => {
         return (
             <div className="oereb-document-section-other-themes">
-                {themes.map(theme => (<div key={theme.Code}>{this.localizedText(theme.Text)}</div>))}
+                {themes.map(theme => (<div key={theme.Code + ":" + theme.SubCode}>{this.localizedText(theme.Text)}</div>))}
             </div>
         );
     }
