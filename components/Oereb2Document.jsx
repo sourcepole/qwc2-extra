@@ -22,7 +22,7 @@
 
 const Lang = "de";
 
-class OerebDocument extends React.Component {
+class Oereb2Document extends React.Component {
     static propTypes = {
         addLayer: PropTypes.func,
         changeLayerProperty: PropTypes.func,
@@ -446,4 +446,4 @@ module.exports = connect(state => ({
     addLayer: addLayer,
     removeLayer: removeLayer,
     changeLayerProperty: changeLayerProperty
-})(OerebDocument);
+})(Oereb2Document);
