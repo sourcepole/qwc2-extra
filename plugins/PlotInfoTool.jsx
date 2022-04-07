@@ -162,7 +162,7 @@ class PlotInfoTool extends React.Component {
                             query = plotServiceUrl + query;
                         }
                         let pdfQuery = entry.pdfQuery ? entry.pdfQuery.replace('$egrid$', plot.egrid) : null;
-                        if(!pdfQuery.startsWith('http')) {
+                        if(pdfQuery && !pdfQuery.startsWith('http')) {
                             pdfQuery = plotServiceUrl + pdfQuery;
                         }
                         const pdfTooltip = entry.pdfTooltip ? LocaleUtils.tr(entry.pdfTooltip) : "";
