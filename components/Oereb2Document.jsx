@@ -147,22 +147,24 @@ class Oereb2Document extends React.Component {
         let respoffices = {};
         for (const entry of entries) {
             for (const prov of this.ensureArray(entry.LegalProvisions)) {
-                regulations[this.localizedText(prov.TextAtWeb)] = {
-                    label: this.localizedText(prov.Title) + (prov.OfficialNumber ? ", " + this.localizedText(prov.OfficialNumber) : ""),
-                    link: this.localizedText(prov.TextAtWeb)
-                };
-                for (const ref of this.ensureArray(prov.Reference)) {
-                    if (ref.DocumentType === "Law") {
-                        legalbasis[this.localizedText(ref.TextAtWeb)] = {
-                            label: this.localizedText(ref.Title) + " (" + this.localizedText(ref.Abbreviation) + ")" + (ref.OfficialNumber ? ", " + ref.OfficialNumber : ""),
-                            link: this.localizedText(ref.TextAtWeb)
-                        };
-                    } else if (ref.DocumentType === "Hint") {
-                        hints[this.localizedText(ref.TextAtWeb)] = {
-                            label: this.localizedText(ref.Title),
-                            link: this.localizedText(ref.TextAtWeb)
-                        };
-                    }
+                if (prov.Type.Code === "LegalProvision") {
+                    regulations[this.localizedText(prov.TextAtWeb)] = {
+                        label: this.localizedText(prov.Title) + (prov.OfficialNumber ? ", " + this.localizedText(prov.OfficialNumber) : ""),
+                        link: this.localizedText(prov.TextAtWeb),
+                        index: prov.Index
+                    };
+                } else if (prov.Type.Code === "Law") {
+                    legalbasis[this.localizedText(prov.TextAtWeb)] = {
+                        label: this.localizedText(prov.Title) + (prov.Abbreviation ? " (" + this.localizedText(prov.Abbreviation) + ")" : "") + (prov.OfficialNumber ? ", " + this.localizedText(prov.OfficialNumber) : ""),
+                        link: this.localizedText(prov.TextAtWeb),
+                        index: prov.Index
+                    };
+                } else if (prov.Type.Code === "Hint") {
+                    hints[this.localizedText(prov.TextAtWeb)] = {
+                        label: this.localizedText(prov.Title),
+                        link: this.localizedText(prov.TextAtWeb),
+                        index: prov.Index
+                    };
                 }
                 respoffices[prov.ResponsibleOffice.OfficeAtWeb] = {
                     label: this.localizedText(prov.ResponsibleOffice.Name),
@@ -298,7 +300,7 @@ class Oereb2Document extends React.Component {
             <div>
                 <h1><Message msgId={sectiontitle} /></h1>
                 <ul>
-                    {Object.values(documents).map((doc, idx) => (
+                    {Object.values(documents).sort((a, b) => a.index !== b.index ? a.index - b.index : a.label.localeCompare(b.label)).map((doc, idx) => (
                         <li key={"doc" + idx}><a href={doc.link} rel="noopener noreferrer" target="_blank" title={doc.label}>&#128279; {doc.label}</a></li>
                     ))}
                 </ul>
