@@ -338,10 +338,14 @@ class Oereb2Document extends React.Component {
                     </tr>
                 </tbody></table>
                 <h1><Message msgId={"oereb.fundations"} /></h1>
-                <p>{this.localizedText(extract.BaseData)}</p>
+                <p><Message msgId={"oereb.fundationdatastate"} /> {new Date(extract.UpdateDateCS).toLocaleDateString()}</p>
                 <h1><Message msgId={"oereb.generalinfo"} /></h1>
                 <p>{this.localizedText(extract.GeneralInformation)}</p>
                 {this.ensureArray(extract.ExclusionOfLiability).map((entry, idx) => [
+                    (<h1 key={"exclt" + idx}>{this.localizedText(entry.Title)}</h1>),
+                    (<p key={"exclc" + idx}>{this.localizedText(entry.Content)}</p>)
+                ])}
+                {this.ensureArray(extract.Disclaimer).map((entry, idx) => [
                     (<h1 key={"disclt" + idx}>{this.localizedText(entry.Title)}</h1>),
                     (<p key={"disclc" + idx}>{this.localizedText(entry.Content)}</p>)
                 ])}

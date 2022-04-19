@@ -22,6 +22,7 @@
         "oereb.responsibleauthority",
         "oereb.requestPdf",
         "oereb.fundations",
+        "oereb.fundationdatastate",
         "oereb.generalinfo",
         "oereb.hidefulllegend",
         "oereb.showfulllegend",
