@@ -387,7 +387,7 @@ class Oereb2Document extends React.Component {
             }
             const parts = url.parse(this.localizedText(entry.Map.ReferenceWMS), true);
             const baseUrl = parts.protocol + '//' + parts.host + parts.pathname;
-            const params = parts.query;
+            const params = Object.entries(parts.query).reduce((res, [key, val]) => ({...res, [key.toUpperCase()]: val}), {});
             const layer = {
                 id: themeId + Date.now().toString(),
                 role: LayerRole.USERLAYER,
