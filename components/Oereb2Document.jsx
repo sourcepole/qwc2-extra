@@ -163,7 +163,7 @@ class Oereb2Document extends React.Component {
                         index: prov.Index
                     };
                 }
-                respoffices[prov.ResponsibleOffice.OfficeAtWeb] = {
+                respoffices[this.localizedText(prov.ResponsibleOffice.OfficeAtWeb)] = {
                     label: this.localizedText(prov.ResponsibleOffice.Name),
                     link: this.localizedText(prov.ResponsibleOffice.OfficeAtWeb)
                 };
@@ -171,7 +171,7 @@ class Oereb2Document extends React.Component {
         }
         if ((this.props.config || {}).responsibleOfficeFromRestriction) {
             respoffices = entries.reduce((res, restr) => {
-                res[restr.ResponsibleOffice.OfficeAtWeb] = {
+                res[this.localizedText(restr.ResponsibleOffice.OfficeAtWeb)] = {
                     label: this.localizedText(restr.ResponsibleOffice.Name),
                     link: this.localizedText(restr.ResponsibleOffice.OfficeAtWeb)
                 };
