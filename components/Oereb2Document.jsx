@@ -100,7 +100,7 @@ class Oereb2Document extends React.Component {
         return (
             <div className="oereb-document-section-concerned-themes">
                 {themes.map(theme => {
-                    const themeId = theme.Code + ":" + theme.SubCode;
+                    const themeId = theme.Code + ":" + (theme.SubCode || "");
                     const icon = this.state.expandedTheme === themeId ? 'chevron-up' : 'chevron-down';
 
                     const extract = this.state.oerebDoc.GetExtractByIdResponse.extract;
@@ -368,7 +368,7 @@ class Oereb2Document extends React.Component {
         }
     }
     toggleTheme = (code, subcode) => {
-        const themeId = code + ":" + subcode;
+        const themeId = code + ":" + (subcode || "");
         const expandedTheme = this.state.expandedTheme === themeId ? null : themeId;
         this.setState({
             expandedTheme: expandedTheme,
