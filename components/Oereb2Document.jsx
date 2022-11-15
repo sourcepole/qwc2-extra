@@ -102,7 +102,7 @@ class Oereb2Document extends React.Component {
 
                     const extract = this.state.oerebDoc.GetExtractByIdResponse.extract;
                     const landOwnRestr = this.ensureArray(extract.RealEstate.RestrictionOnLandownership);
-                    const entry = landOwnRestr.find(entry => entry.Theme.Code === theme.Code && entry.Theme.SubCode === theme.SubCode);
+                    const entry = landOwnRestr.find(entry => entry.Theme.Code === theme.Code && (!theme.SubCode || entry.Theme.SubCode === theme.SubCode));
                     return (
                         <div className="oereb-document-theme" key={themeId}>
                             <div className="oereb-document-theme-title" onClick={() => this.toggleTheme(theme.Code, theme.SubCode)}>
@@ -118,7 +118,7 @@ class Oereb2Document extends React.Component {
     }
     collectConcernedThemes = (landOwnRestr, code, subcode) => {
         let subthemes = [""];
-        let entries = landOwnRestr.filter(entry => entry.Theme.Code === code && entry.Theme.SubCode === subcode);
+        let entries = landOwnRestr.filter(entry => entry.Theme.Code === code && (!subcode || entry.Theme.SubCode === subcode));
         let isSubTheme = false;
         if (!isEmpty(entries)) {
             // Main theme match, order subthemes according to config
