@@ -170,6 +170,6 @@ div.oereb-document-section-general-info table img {
     margin: 1em;
 }
 
-div.oereb-document-section-general-info p {
+div.oereb-document-section-general-info > div {
     padding-left: 0.5em;
 }

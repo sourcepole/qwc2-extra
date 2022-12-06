@@ -335,16 +335,16 @@ class Oereb2Document extends React.Component {
                     </tr>
                 </tbody></table>
                 <h1>{LocaleUtils.tr("oereb.fundations")}</h1>
-                <p>{LocaleUtils.tr("oereb.fundationdatastate")} {new Date(extract.UpdateDateCS).toLocaleDateString()}</p>
+                <div>{LocaleUtils.tr("oereb.fundationdatastate")} {new Date(extract.UpdateDateCS).toLocaleDateString()}</div>
                 <h1>{LocaleUtils.tr("oereb.generalinfo")}</h1>
-                <p>{this.localizedText(extract.GeneralInformation)}</p>
+                <div>{this.localizedText(extract.GeneralInformation)}</div>
                 {this.ensureArray(extract.ExclusionOfLiability).map((entry, idx) => [
                     (<h1 key={"exclt" + idx}>{this.localizedText(entry.Title)}</h1>),
-                    (<p key={"exclc" + idx}>{this.localizedText(entry.Content)}</p>)
+                    (<div key={"exclc" + idx}>{this.localizedText(entry.Content)}</div>)
                 ])}
                 {this.ensureArray(extract.Disclaimer).map((entry, idx) => [
                     (<h1 key={"disclt" + idx}>{this.localizedText(entry.Title)}</h1>),
-                    (<p key={"disclc" + idx}>{this.localizedText(entry.Content)}</p>)
+                    (<div key={"disclc" + idx}>{this.localizedText(entry.Content)}</div>)
                 ])}
             </div>
         );
@@ -426,8 +426,14 @@ class Oereb2Document extends React.Component {
             el = el.LocalisedText;
         }
         if (Array.isArray(el)) {
-            const entry = el.find(e => e.Language === Lang);
-            return entry ? entry.Text : el[0].Text;
+            const entries = el.flat().filter(e => e.Language === Lang);
+            if (entries.length === 0) {
+                return el[0].Text;
+            } else if (entries.length === 1) {
+                return entries[0].Text;
+            } else {
+                return entries.map((entry, idx) => (<p key={"p" + idx}>{entry.Text}</p>));
+            }
         } else {
             return el.Text;
         }
