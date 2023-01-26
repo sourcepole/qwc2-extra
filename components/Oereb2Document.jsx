@@ -382,7 +382,7 @@ class Oereb2Document extends React.Component {
         const entries = this.collectConcernedThemes(landOwnRestr, code, subcode).entries;
         const subThemeLayers = new Set();
         for (const entry of entries) {
-            if (!entry.Map || !entry.Map.ReferenceWMS || subThemeLayers.has(entry.SubTheme)) {
+            if (!entry.Map || !entry.Map.ReferenceWMS || subThemeLayers.has(entry.Map.ReferenceWMS)) {
                 continue;
             }
             const parts = url.parse(this.localizedText(entry.Map.ReferenceWMS), true);
@@ -408,7 +408,7 @@ class Oereb2Document extends React.Component {
                 __oereb_subtheme: entry.SubTheme
             };
             this.props.addLayer(layer);
-            subThemeLayers.add(entry.SubTheme);
+            subThemeLayers.add(entry.Map.ReferenceWMS);
         }
     }
     toggleFullLegend = (legendId) => {
