@@ -159,10 +159,12 @@ class OerebDocument extends React.Component {
                         };
                     }
                 }
-                respoffices[prov.ResponsibleOffice.OfficeAtWeb] = {
-                    label: this.localizedText(prov.ResponsibleOffice.Name),
-                    link: prov.ResponsibleOffice.OfficeAtWeb
-                };
+                if((this.props.config||{}).responsibleOfficeFromLegalProvisions !== false) {
+                    respoffices[prov.ResponsibleOffice.OfficeAtWeb] = {
+                        label: this.localizedText(prov.ResponsibleOffice.Name),
+                        link: prov.ResponsibleOffice.OfficeAtWeb
+                    };
+                }
             }
         }
         if ((this.props.config || {}).responsibleOfficeFromRestriction) {
