@@ -399,7 +399,10 @@ class Oereb2Document extends React.Component {
                 version: params.VERSION,
                 featureInfoUrl: baseUrl,
                 queryable: false,
-                bbox: params.BBOX,
+                bbox: {
+                    crs: params.SRS || params.CRS,
+                    bounds: params.BBOX.split(',')
+                },
                 visibility: true,
                 opacity: entry.Map.layerOpacity !== undefined ? this.ensureNumber(entry.Map.layerOpacity) * 255 : 255,
                 format: params.FORMAT,
