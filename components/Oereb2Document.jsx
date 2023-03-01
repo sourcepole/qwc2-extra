@@ -163,10 +163,12 @@ class Oereb2Document extends React.Component {
                         index: prov.Index
                     };
                 }
-                respoffices[this.localizedText(prov.ResponsibleOffice.OfficeAtWeb)] = {
-                    label: this.localizedText(prov.ResponsibleOffice.Name),
-                    link: this.localizedText(prov.ResponsibleOffice.OfficeAtWeb)
-                };
+                if((this.props.config||{}).responsibleOfficeFromLegalProvisions !== false) {
+                    respoffices[prov.ResponsibleOffice.OfficeAtWeb] = {
+                        label: this.localizedText(prov.ResponsibleOffice.Name),
+                        link: this.localizedText(prov.ResponsibleOffice.OfficeAtWeb)
+                    };
+                }
             }
         }
         if ((this.props.config || {}).responsibleOfficeFromRestriction) {
