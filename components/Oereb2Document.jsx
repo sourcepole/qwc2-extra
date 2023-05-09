@@ -30,13 +30,13 @@ class Oereb2Document extends React.Component {
         ]),
         layers: PropTypes.array,
         removeLayer: PropTypes.func
-    }
+    };
     state = {
         oerebDoc: null,
         expandedSection: null,
         expandedTheme: null,
         expandedLegend: null
-    }
+    };
     constructor(props) {
         super(props);
         this.state.oerebDoc = this.getOerebDoc(props.data);
@@ -92,7 +92,7 @@ class Oereb2Document extends React.Component {
                 {this.state.expandedSection === name ? renderer(data) : null}
             </div>
         );
-    }
+    };
     renderConcernedThemes = (themes) => {
         return (
             <div className="oereb-document-section-concerned-themes">
@@ -102,7 +102,7 @@ class Oereb2Document extends React.Component {
 
                     const extract = this.state.oerebDoc.GetExtractByIdResponse.extract;
                     const landOwnRestr = this.ensureArray(extract.RealEstate.RestrictionOnLandownership);
-                    const entry = landOwnRestr.find(entry => entry.Theme.Code === theme.Code && (!theme.SubCode || entry.Theme.SubCode === theme.SubCode));
+                    const entry = landOwnRestr.find(e => e.Theme.Code === theme.Code && (!theme.SubCode || e.Theme.SubCode === theme.SubCode));
                     return (
                         <div className="oereb-document-theme" key={themeId}>
                             <div className="oereb-document-theme-title" onClick={() => this.toggleTheme(theme.Code, theme.SubCode)}>
@@ -115,7 +115,7 @@ class Oereb2Document extends React.Component {
                 })}
             </div>
         );
-    }
+    };
     collectConcernedThemes = (landOwnRestr, code, subcode) => {
         let subthemes = [""];
         let entries = landOwnRestr.filter(entry => entry.Theme.Code === code && (!subcode || entry.Theme.SubCode === subcode));
@@ -133,7 +133,7 @@ class Oereb2Document extends React.Component {
             }
         }
         return {entries, subthemes, isSubTheme};
-    }
+    };
     renderTheme = (code, subcode) => {
         const extract = this.state.oerebDoc.GetExtractByIdResponse.extract;
         const landOwnRestr = this.ensureArray(extract.RealEstate.RestrictionOnLandownership);
@@ -291,7 +291,7 @@ class Oereb2Document extends React.Component {
                 {this.renderDocuments(respoffices, LocaleUtils.trmsg("oereb.responsibleoffice"))}
             </div>
         );
-    }
+    };
     renderDocuments = (documents, sectiontitle) => {
         return isEmpty(documents) ? null : (
             <div>
@@ -303,14 +303,14 @@ class Oereb2Document extends React.Component {
                 </ul>
             </div>
         );
-    }
+    };
     renderOtherThemes = (themes) => {
         return (
             <div className="oereb-document-section-other-themes">
                 {themes.map(theme => (<div key={theme.Code + ":" + theme.SubCode}>{this.localizedText(theme.Text)}</div>))}
             </div>
         );
-    }
+    };
     renderGeneralInformation = (extract) => {
         return (
             <div className="oereb-document-section-general-info">
@@ -348,29 +348,29 @@ class Oereb2Document extends React.Component {
                 ])}
             </div>
         );
-    }
+    };
     toggleSection = (name) => {
-        this.setState({
-            expandedSection: this.state.expandedSection === name ? null : name,
+        this.setState((state) => ({
+            expandedSection: state.expandedSection === name ? null : name,
             expandedTheme: null,
             expandedLegend: null
-        });
+        }));
         this.removeHighlighLayer();
-    }
+    };
     removeHighlighLayer = () => {
         // Remove previous __oereb_highlight layers
         const layers = this.props.layers.filter(layer => layer.__oereb_highlight === true);
         for (const layer of layers) {
             this.props.removeLayer(layer.id);
         }
-    }
+    };
     toggleTheme = (code, subcode) => {
         const themeId = code + ":" + (subcode || "");
         const expandedTheme = this.state.expandedTheme === themeId ? null : themeId;
-        this.setState({
-            expandedTheme: expandedTheme,
+        this.setState((state) => ({
+            expandedTheme: state.expandedTheme === themeId ? null : themeId,
             expandedLegend: null
-        });
+        }));
         this.removeHighlighLayer();
         if (!expandedTheme) {
             return;
@@ -413,14 +413,13 @@ class Oereb2Document extends React.Component {
             this.props.addLayer(layer);
             subThemeLayers.add(entry.Map.ReferenceWMS);
         }
-    }
+    };
     toggleFullLegend = (legendId) => {
-        const expandedLegend = this.state.expandedLegend === legendId ? null : legendId;
-        this.setState({expandedLegend});
-    }
+        this.setState((state) => ({expandedLegend: state.expandedLegend === legendId ? null : legendId}));
+    };
     toggleThemeLayer = (subthemelayer) => {
         this.props.changeLayerProperty(subthemelayer.uuid, "visibility", !subthemelayer.visibility);
-    }
+    };
     localizedText = (el) => {
         if (isEmpty(el)) {
             return "";
@@ -440,16 +439,16 @@ class Oereb2Document extends React.Component {
         } else {
             return el.Text;
         }
-    }
+    };
     ensureArray = (el) => {
         if (el === undefined) {
             return [];
         }
         return Array.isArray(el) ? el : [el];
-    }
+    };
     ensureNumber = (value) => {
         return parseFloat(value) || 0;
-    }
+    };
 }
 
 export default connect(state => ({

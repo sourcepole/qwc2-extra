@@ -49,20 +49,20 @@ class PlotInfoTool extends React.Component {
         toolLayers: PropTypes.array,
         windowSize: PropTypes.object,
         zoomToPoint: PropTypes.func
-    }
+    };
     static defaultProps = {
         toolLayers: [],
         infoQueries: [],
         customInfoComponents: {},
         windowSize: {width: 500, height: 800}
-    }
+    };
     state = {
         plotInfo: null,
         currentPlot: null,
         expandedInfo: null,
         expandedInfoData: null,
         pendingPdfs: []
-    }
+    };
     componentDidUpdate(prevProps, prevState) {
         if (this.props.theme && !prevProps.theme) {
             if (UrlParams.getParam('realty') !== undefined) {
@@ -162,7 +162,7 @@ class PlotInfoTool extends React.Component {
                             query = plotServiceUrl + query;
                         }
                         let pdfQuery = entry.pdfQuery ? entry.pdfQuery.replace('$egrid$', plot.egrid) : null;
-                        if(pdfQuery && !pdfQuery.startsWith('http')) {
+                        if (pdfQuery && !pdfQuery.startsWith('http')) {
                             pdfQuery = plotServiceUrl + pdfQuery;
                         }
                         const pdfTooltip = entry.pdfTooltip ? LocaleUtils.tr(entry.pdfTooltip) : "";
@@ -174,8 +174,8 @@ class PlotInfoTool extends React.Component {
                                     <span>{entry.titleMsgId ? LocaleUtils.tr(entry.titleMsgId) : entry.title}</span>
                                     {entry.pdfQuery ?
                                         this.state.pendingPdfs.includes(pdfQuery) ? (<Spinner />) :
-                                        (<Icon title={pdfTooltip} icon="pdf" onClick={ev => this.queryPdf(ev, entry, pdfQuery)} />)
-                                     : null}
+                                            (<Icon icon="pdf" onClick={ev => this.queryPdf(ev, entry, pdfQuery)} title={pdfTooltip} />)
+                                        : null}
                                 </div>
                             ),
                             expanded ? (
@@ -188,12 +188,12 @@ class PlotInfoTool extends React.Component {
                 </div>
             </div>
         );
-    }
+    };
     toggleCurrentPlot = (idx) => {
         if (this.state.currentPlot !== idx) {
             this.setState({currentPlot: idx, expandedInfo: null, expandedInfoData: null, pendingPdfs: []});
         }
-    }
+    };
     renderWait = () => {
         return (
             <div className="plot-info-dialog-query-loading">
@@ -201,14 +201,14 @@ class PlotInfoTool extends React.Component {
                 <span>{LocaleUtils.tr("plotinfotool.loading")}</span>
             </div>
         );
-    }
+    };
     renderError = () => {
         return (
             <div className="plot-info-dialog-query-failed">
                 {this.state.expandedInfoData.failed === true ? LocaleUtils.tr("plotinfotool.failed") : LocaleUtils.tr(this.state.expandedInfoData.failed)}
             </div>
         );
-    }
+    };
     renderInfoData = () => {
         if (this.props.customInfoComponents[this.state.expandedInfo]) {
             const Component = this.props.customInfoComponents[this.state.expandedInfo];
@@ -221,7 +221,7 @@ class PlotInfoTool extends React.Component {
                 <iframe onLoad={ev => this.setIframeContent(ev.target, this.state.expandedInfoData)} src={src} />
             );
         }
-    }
+    };
     setIframeContent = (iframe, html) => {
         if (!iframe.getAttribute("identify-content-set")) {
             iframe.setAttribute("identify-content-set", true);
@@ -230,7 +230,7 @@ class PlotInfoTool extends React.Component {
             doc.write(html);
             doc.close();
         }
-    }
+    };
     activated = () => {
         const assetsPath = ConfigUtils.getAssetsPath();
         this.props.changeSelectionState({geomType: 'Point', style: 'default', styleOptions: {
@@ -240,11 +240,11 @@ class PlotInfoTool extends React.Component {
         this.props.themeLayerRestorer(this.props.toolLayers, null, layers => {
             this.props.addThemeSublayer({sublayers: layers});
         });
-    }
+    };
     deactivated = () => {
         this.setState({plotInfo: null, currentPlot: null, expandedInfo: null, expandedInfoData: null, pendingPdfs: []});
         this.props.changeSelectionState({geomType: null});
-    }
+    };
     queryBasicInfoAtPoint = (point) => {
         this.props.clearSearch();
         const serviceUrl = ConfigUtils.getConfigProp("plotInfoService").replace(/\/$/, '') + '/';
@@ -256,7 +256,7 @@ class PlotInfoTool extends React.Component {
             const plotInfo = !isEmpty(response.data.plots) ? response.data.plots : null;
             this.setState({plotInfo: plotInfo, currentPlot: 0, expandedInfo: null, expandedInfoData: null});
         }).catch(() => {});
-    }
+    };
     queryInfoByEgrid = (query, egrid) => {
         const serviceUrl = ConfigUtils.getConfigProp("plotInfoService").replace(/\/$/, '');
         axios.get(serviceUrl + '/query/' + egrid).then(response => {
@@ -273,14 +273,16 @@ class PlotInfoTool extends React.Component {
                 this.toggleEgridInfo(query, url);
             }
         }).catch(e => {
+            // eslint-disable-next-line
             alert("Query failed");
+            // eslint-disable-next-line
             console.warn(e);
         });
-    }
+    };
     queryPdf = (ev, infoEntry, queryUrl) => {
         this.props.logAction("PLOTINFO_PDF_QUERY", {info: infoEntry.key});
         ev.stopPropagation();
-        this.setState({pendingPdfs: [...this.state.pendingPdfs, queryUrl]});
+        this.setState((state) => ({pendingPdfs: [...state.pendingPdfs, queryUrl]}));
         axios.get(queryUrl, {responseType: 'blob', validateStatus: status => status >= 200 && status < 300 && status !== 204}).then(response => {
             const contentType = response.headers["content-type"];
             let filename = infoEntry.key + '.pdf';
@@ -291,13 +293,14 @@ class PlotInfoTool extends React.Component {
                 /* Pass */
             }
             FileSaver.saveAs(new Blob([response.data], {type: contentType}), filename);
-            this.setState({pendingPdfs: this.state.pendingPdfs.filter(entry => entry !== queryUrl)});
+            this.setState((state) => ({pendingPdfs: state.pendingPdfs.filter(entry => entry !== queryUrl)}));
         }).catch(() => {
-            this.setState({pendingPdfs: this.state.pendingPdfs.filter(entry => entry !== queryUrl)});
+            this.setState((state) => ({pendingPdfs: state.pendingPdfs.filter(entry => entry !== queryUrl)}));
             const errorMsg = infoEntry.failMsgId ? LocaleUtils.tr(infoEntry.failMsgId) : "";
+            // eslint-disable-next-line
             alert(errorMsg || "Print failed");
         });
-    }
+    };
     toggleEgridInfo = (infoEntry, queryUrl) => {
         if (this.state.expandedInfo === infoEntry.key) {
             this.setState({expandedInfo: null, expandedInfoData: null});
@@ -310,7 +313,7 @@ class PlotInfoTool extends React.Component {
                 this.setState({expandedInfoData: {failed: infoEntry.failMsgId || true}});
             });
         }
-    }
+    };
 }
 
 const selector = state => ({
