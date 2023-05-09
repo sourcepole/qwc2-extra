@@ -4,6 +4,11 @@
     "en-US"
   ],
   "strings": [
+    "cyclomedia.clickonmap",
+    "cyclomedia.loaderror",
+    "cyclomedia.loading",
+    "cyclomedia.scalehint",
+    "cyclomedia.title",
     "oereb.concernedThemes",
     "oereb.fundationdatastate",
     "oereb.fundations",
@@ -26,6 +31,7 @@
     "plotinfotool.loading"
   ],
   "extra_strings": [
+    "appmenu.items.Cyclomedia",
     "appmenu.items.PlotInfoTool",
     "oereb.title",
     "oereb.failed",
