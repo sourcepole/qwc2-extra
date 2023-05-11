@@ -1,13 +1,6 @@
 {
   "locale": "en-US",
   "messages": {
-    "cyclomedia": {
-      "clickonmap": "Click on a recording on the map",
-      "loaderror": "Failed to initialize Cyclomedia",
-      "loading": "Initializing Cyclomedia...",
-      "scalehint": "The recordings are only visible on the map below scale 1:{0}.",
-      "title": "Cyclomedia Viewer"
-    },
     "oereb": {
       "concernedThemes": "Concerned themes",
       "fundationdatastate": "Cadastral surveying data. Status of the cadastral survey:",
