@@ -27,9 +27,14 @@
       "failed": "Failed to load data",
       "loading": "Loading data..."
     },
+    "sensorthingstool": {
+      "datastreamLabel": "Datastream",
+      "title": "SensorThings Info"
+    },
     "appmenu": {
       "items": {
-        "PlotInfoTool": "Real Estate Information"
+        "PlotInfoTool": "Real Estate Information",
+        "SensorThingsTool": "SensorThings Query"
       }
     },
     "plotdescr": {

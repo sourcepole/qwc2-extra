@@ -23,13 +23,16 @@
     "oereb.themeWithoutData",
     "oereb.type",
     "plotinfotool.failed",
-    "plotinfotool.loading"
+    "plotinfotool.loading",
+    "sensorthingstool.datastreamLabel"
   ],
   "extra_strings": [
     "appmenu.items.PlotInfoTool",
+    "appmenu.items.SensorThingsTool",
     "oereb.title",
     "oereb.failed",
     "plotdescr.title",
-    "plotdescr.requestPdf"
+    "plotdescr.requestPdf",
+    "sensorthingstool.title"
   ]
 }

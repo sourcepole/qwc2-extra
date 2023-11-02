@@ -1,0 +1,12 @@
+div.sensor-things-dialog-body {
+    display: flex;
+    flex-direction: column;
+}
+
+div.resizeable-window-body-nonscrollable div.sensor-things-dialog-body {
+    height: 100%;
+}
+
+div.sensor-things-graph {
+    height: 100%;
+}

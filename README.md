@@ -3,6 +3,21 @@ Extra components for QWC2
 
 This repository contains extra components for QWC2.
 
+* [PlotInfoTool](#plotinfotool)
+* [SensorThingsTool](#sensorthingstool)
+
+
+NOTE: add this directory to the QWC2 App workspaces in `package.json`:
+```jsonc
+    // ...
+    "workspaces": [
+        "qwc2",
+        "qwc2-extra"
+    ]
+    // ...
+```
+
+
 PlotInfoTool
 ------------
 
@@ -70,3 +85,75 @@ Sample `PlotInfoToolPlugin` configuration, as can be defined in the `cfg` sectio
        };
 
        module.exports = CustomPlotInfoComponent;
+
+
+SensorThingsTool
+----------------
+
+Plugin for querying observations from a SensorThings API server and displaying them as a graph.
+
+
+### Configuration
+
+#### `config.json`
+```jsonc
+{
+  // ...
+  "plugins": {
+    "common": [
+      // ...
+      {
+        "name": "TopBar",
+        "cfg": {
+          "menuItems": [
+            // ...
+            {"key": "SensorThingsTool", "icon": "plot_info"},
+            // ...
+          ]
+      },
+      // ...
+      {
+        "name": "SensorThingsTool",
+        "cfg": {
+          "sensorThingsApiUrl": "https://airquality-frost.k8s.ilt-dmz.iosb.fraunhofer.de/v1.1",
+          "queryTolerance": 16,
+          "windowSize": {
+            "width": 800, "height": 500
+          }
+        }
+      },
+      // ...
+    ],
+    // ...
+  }
+  // ...
+}
+```
+
+* `sensorThingsApiUrl`: Base URL of SensorThings API
+* `queryTolerance` (optional, default: `16`): Tolerance in pixels around query position
+* `windowSize` (optional, default: 800x500): Inital window size
+
+
+#### `appConfig.js`
+
+Import and include `SensorThingsToolPlugin` in `appConfig.js`:
+```javascript
+// ...
+
+import SensorThingsToolPlugin from 'qwc2-extra/plugins/SensorThingsTool';
+
+// ...
+
+export default {
+    // ...
+    pluginsDef: {
+        plugins: {
+            // ...
+            SensorThingsToolPlugin: SensorThingsToolPlugin
+            // ...
+        }
+    },
+    // ...
+};
+```

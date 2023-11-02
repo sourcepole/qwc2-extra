@@ -1,5 +1,5 @@
 {
-  "locale": "de-DE",
+  "locale": "de-CH",
   "messages": {
     "oereb": {
       "concernedThemes": "Betroffene Themen",
@@ -27,9 +27,14 @@
       "failed": "Datenabfrage gescheitert",
       "loading": "Daten werden geladen..."
     },
+    "sensorthingstool": {
+      "datastreamLabel": "Datastream",
+      "title": "SensorThings Info"
+    },
     "appmenu": {
       "items": {
-        "PlotInfoTool": "Grundstücksinformation"
+        "PlotInfoTool": "Grundstücksinformation",
+        "SensorThingsTool": "SensorThings Abfrage"
       }
     },
     "plotdescr": {
