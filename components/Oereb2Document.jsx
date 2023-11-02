@@ -11,6 +11,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import isEmpty from 'lodash.isempty';
 import url from 'url';
+import uuid from 'uuid';
 import xml2js from 'xml2js';
 import {LayerRole, addLayer, removeLayer, changeLayerProperty} from 'qwc2/actions/layers';
 import Icon from 'qwc2/components/Icon';
@@ -69,9 +70,41 @@ class Oereb2Document extends React.Component {
     }
     render() {
         const extract = this.state.oerebDoc.GetExtractByIdResponse.extract;
+
+        const toplevelThemes = {};
+        this.ensureArray(extract.ConcernedTheme).forEach(theme => {
+
+            const extract = this.state.oerebDoc.GetExtractByIdResponse.extract;
+            const landOwnRestr = this.ensureArray(extract.RealEstate.RestrictionOnLandownership);
+
+            // - If subcode provided: exactly one top-level entry
+            // - If subcode not provided: one toplevel entry and subthemes rendered as childs of toplevel entry
+            // => separate toplevel entries depending on LawStatus
+
+            let concernedThemes = [];
+
+            if (theme.SubCode) {
+                concernedThemes = landOwnRestr.find(entry => entry.Theme.Code === theme.Code && entry.Theme.SubCode === theme.SubCode);
+            } else {
+                concernedThemes = landOwnRestr.filter(entry => entry.Theme.Code === theme.Code);
+            }
+
+            concernedThemes.forEach(theme => {
+                const themeId = theme.Theme.Code + ":" + theme.Theme.SubCode + ":" + theme.Lawstatus.Code;
+                if (!toplevelThemes[themeId]) {
+                    toplevelThemes[themeId] = {
+                        id: themeId,
+                        title: this.localizedText(theme.Theme.Text) + " (" + this.localizedText(theme.Lawstatus.Text) + ")",
+                        entries: []
+                    };
+                }
+                toplevelThemes[themeId].entries.push({...theme, uuid: uuid.v1()});
+            });
+        });
+
         return (
             <div className="oereb-document">
-                {this.renderSection("concernedThemes", LocaleUtils.trmsg("oereb.concernedThemes"), this.renderConcernedThemes, this.ensureArray(extract.ConcernedTheme))}
+                {this.renderSection("concernedThemes", LocaleUtils.trmsg("oereb.concernedThemes"), this.renderConcernedThemes, Object.values(toplevelThemes))}
                 {this.renderSection("notConcernedThemes", LocaleUtils.trmsg("oereb.notConcernedThemes"), this.renderOtherThemes, this.ensureArray(extract.NotConcernedTheme))}
                 {this.renderSection("themeWithoutData", LocaleUtils.trmsg("oereb.themeWithoutData"), this.renderOtherThemes, this.ensureArray(extract.ThemeWithoutData))}
                 {this.renderSection("generalInformation", LocaleUtils.trmsg("oereb.generalInformation"), this.renderGeneralInformation, extract)}
@@ -97,52 +130,26 @@ class Oereb2Document extends React.Component {
         return (
             <div className="oereb-document-section-concerned-themes">
                 {themes.map(theme => {
-                    const themeId = theme.Code + ":" + (theme.SubCode || "");
-                    const icon = this.state.expandedTheme === themeId ? 'chevron-up' : 'chevron-down';
-
-                    const extract = this.state.oerebDoc.GetExtractByIdResponse.extract;
-                    const landOwnRestr = this.ensureArray(extract.RealEstate.RestrictionOnLandownership);
-                    const entry = landOwnRestr.find(entry => entry.Theme.Code === theme.Code && (!theme.SubCode || entry.Theme.SubCode === theme.SubCode));
+                    const icon = this.state.expandedTheme === theme.id ? 'chevron-up' : 'chevron-down';
                     return (
-                        <div className="oereb-document-theme" key={themeId}>
-                            <div className="oereb-document-theme-title" onClick={() => this.toggleTheme(theme.Code, theme.SubCode)}>
-                                <span>{this.localizedText(theme.Text)} ({this.localizedText(entry.Lawstatus.Text)})</span>
+                        <div className="oereb-document-theme" key={theme.id}>
+                            <div className="oereb-document-theme-title" onClick={() => this.toggleTheme(theme)}>
+                                <span>{theme.title}</span>
                                 <Icon icon={icon} />
                             </div>
-                            {this.state.expandedTheme === themeId ? this.renderTheme(theme.Code, theme.SubCode) : null}
+                            {this.state.expandedTheme === theme.id ? this.renderTheme(theme) : null}
                         </div>
                     );
                 })}
             </div>
         );
     }
-    collectConcernedThemes = (landOwnRestr, code, subcode) => {
-        let subthemes = [""];
-        let entries = landOwnRestr.filter(entry => entry.Theme.Code === code && (!subcode || entry.Theme.SubCode === subcode));
-        let isSubTheme = false;
-        if (!isEmpty(entries)) {
-            // Main theme match, order subthemes according to config
-            subthemes = (this.props.config.subthemes || {})[name] || [""];
-            entries = entries.sort((x, y) => subthemes.indexOf(x.SubTheme) - subthemes.indexOf(y.SubTheme));
-        } else {
-            // Attempt to match by subtheme name
-            entries = landOwnRestr.filter(entry => entry.SubTheme === name);
-            if (!isEmpty(entries)) {
-                subthemes = [name];
-                isSubTheme = true;
-            }
-        }
-        return {entries, subthemes, isSubTheme};
-    }
-    renderTheme = (code, subcode) => {
-        const extract = this.state.oerebDoc.GetExtractByIdResponse.extract;
-        const landOwnRestr = this.ensureArray(extract.RealEstate.RestrictionOnLandownership);
-        const {entries, subthemes, isSubTheme} = this.collectConcernedThemes(landOwnRestr, code, subcode);
+    renderTheme = (theme) => {
         const regulations = {};
         const legalbasis = {};
         const hints = {};
         let respoffices = {};
-        for (const entry of entries) {
+        for (const entry of theme.entries) {
             for (const prov of this.ensureArray(entry.LegalProvisions)) {
                 if (prov.Type.Code === "LegalProvision") {
                     regulations[this.localizedText(prov.TextAtWeb)] = {
@@ -172,7 +179,7 @@ class Oereb2Document extends React.Component {
             }
         }
         if ((this.props.config || {}).responsibleOfficeFromRestriction) {
-            respoffices = entries.reduce((res, restr) => {
+            respoffices = theme.entries.reduce((res, restr) => {
                 res[this.localizedText(restr.ResponsibleOffice.OfficeAtWeb)] = {
                     label: this.localizedText(restr.ResponsibleOffice.Name),
                     link: this.localizedText(restr.ResponsibleOffice.OfficeAtWeb)
@@ -181,112 +188,79 @@ class Oereb2Document extends React.Component {
             }, {});
         }
 
+        // Aggregate symbols
         const legendSymbols = {};
-        for (const entry of entries) {
-            const subTheme = entry.SubTheme || "";
-            if (!(subTheme in legendSymbols)) {
-                legendSymbols[subTheme] = {
-                    symbols: {},
-                    fullLegend: (entry.Map || {}).LegendAtWeb
-                };
-            }
-            const subThemeSymbols = legendSymbols[subTheme].symbols;
-            if (entry.SymbolRef in subThemeSymbols) {
-                if (subThemeSymbols[entry.SymbolRef].NrOfPoints && entry.NrOfPoints) {
-                    subThemeSymbols[entry.SymbolRef].NrOfPoints += this.ensureNumber(entry.NrOfPoints);
-                } else if (entry.NrOfPoints) {
-                    subThemeSymbols[entry.SymbolRef].NrOfPoints = this.ensureNumber(entry.NrOfPoints);
-                }
-                if (subThemeSymbols[entry.SymbolRef].AreaShare && entry.AreaShare) {
-                    subThemeSymbols[entry.SymbolRef].AreaShare += this.ensureNumber(entry.AreaShare);
-                } else if (entry.AreaShare) {
-                    subThemeSymbols[entry.SymbolRef].AreaShare = this.ensureNumber(entry.AreaShare);
-                }
-                if (subThemeSymbols[entry.SymbolRef].LengthShare && entry.LengthShare) {
-                    subThemeSymbols[entry.SymbolRef].LengthShare += this.ensureNumber(entry.LengthShare);
-                } else if (entry.LengthShare) {
-                    subThemeSymbols[entry.SymbolRef].LengthShare = this.ensureNumber(entry.LengthShare);
-                }
-                if (subThemeSymbols[entry.SymbolRef].PartInPercent && entry.PartInPercent) {
-                    subThemeSymbols[entry.SymbolRef].PartInPercent += this.ensureNumber(entry.PartInPercent);
-                } else if (entry.PartInPercent) {
-                    subThemeSymbols[entry.SymbolRef].PartInPercent = this.ensureNumber(entry.PartInPercent);
-                }
-            } else {
-                subThemeSymbols[entry.SymbolRef] = {
+        const sumIfDefined = (a, b) => (a && b ? a + b : a || b);
+        for (const entry of theme.entries) {
+            if (!legendSymbols[entry.SymbolRef]) {
+                legendSymbols[entry.SymbolRef] = {
+                    SymbolRef: entry.SymbolRef,
                     LegendText: entry.LegendText,
+                    FullLegend: entry?.Map?.LegendAtWeb,
                     NrOfPoints: this.ensureNumber(entry.NrOfPoints),
                     AreaShare: this.ensureNumber(entry.AreaShare),
                     LengthShare: this.ensureNumber(entry.LengthShare),
                     PartInPercent: this.ensureNumber(entry.PartInPercent)
                 };
+            } else {
+                const symbol = legendSymbols[entry.SymbolRef];
+                symbol.NrOfPoints = sumIfDefined(symbol.NrOfPoints, this.ensureNumber(entry.NrOfPoints));
+                symbol.AreaShare = sumIfDefined(symbol.AreaShare, this.ensureNumber(entry.AreaShare));
+                symbol.LengthShare = sumIfDefined(symbol.LengthShare, this.ensureNumber(entry.LengthShare));
+                symbol.PartInPercent = sumIfDefined(symbol.PartInPercent, this.ensureNumber(entry.PartInPercent));
             }
         }
+
         return (
             <div className="oereb-document-theme-contents">
-                {subthemes.slice(0).reverse().map((subtheme, idx) => {
-                    const subthemedata = legendSymbols[subtheme];
-                    if (!subthemedata) {
-                        return (
-                            <div className="oereb-document-subtheme-container" key={"subtheme" + idx}>
-                                <div className="oereb-document-subtheme-emptytitle">{subtheme}</div>
-                            </div>
-                        );
-                    }
-                    const fullLegendId = this.state.expandedTheme + "_" + (subtheme || "");
-                    const toggleLegendMsgId = this.state.expandedLegend === fullLegendId ? LocaleUtils.trmsg("oereb.hidefulllegend") : LocaleUtils.trmsg("oereb.showfulllegend");
-                    const subThemeLayer = this.props.layers.find(layer => layer.__oereb_subtheme === subtheme);
-                    return (
-                        <div className="oereb-document-subtheme-container" key={"subtheme" + idx}>
-                            {subtheme && !isSubTheme ? (<div className="oereb-document-subtheme-title">
-                                {subThemeLayer ? (<Icon icon={subThemeLayer.visibility === true ? 'checked' : 'unchecked'} onClick={() => this.toggleThemeLayer(subThemeLayer)}/>) : null}
-                                {subtheme}
-                            </div>) : null}
-                            <table><tbody>
-                                <tr>
-                                    <th>{LocaleUtils.tr("oereb.type")}</th>
-                                    <th />
-                                    <th>{LocaleUtils.tr("oereb.share")}</th>
-                                    <th>{LocaleUtils.tr("oereb.perc")}</th>
+                <table><tbody>
+                    <tr>
+                        <th>{LocaleUtils.tr("oereb.type")}</th>
+                        <th />
+                        <th>{LocaleUtils.tr("oereb.share")}</th>
+                        <th>{LocaleUtils.tr("oereb.perc")}</th>
+                    </tr>
+                    {Object.values(legendSymbols).map((legendEntry, idx) => {
+                        const fullLegendId = legendEntry.SymbolRef;
+                        const toggleLegendMsgId = this.state.expandedLegend === fullLegendId ? LocaleUtils.trmsg("oereb.hidefulllegend") : LocaleUtils.trmsg("oereb.showfulllegend");
+                        return [
+                            legendEntry.NrOfPoints ? (
+                                <tr key={"NrOfPoints" + idx}>
+                                    <td>{this.localizedText(legendEntry.LegendText)}</td>
+                                    <td><img src={legendEntry.SymbolRef} /></td>
+                                    <td>{legendEntry.NrOfPoints}&nbsp;{LocaleUtils.tr("oereb.nrpoints")}</td>
+                                    <td>-</td>
                                 </tr>
-                                {Object.entries(subthemedata.symbols).map(([symbol, data], jdx) => {
-                                    return [data.NrOfPoints ? (
-                                        <tr key={"sympts" + jdx}>
-                                            <td>{this.localizedText(data.LegendText)}</td>
-                                            <td><img src={symbol} /></td>
-                                            <td>{data.NrOfPoints}&nbsp;{LocaleUtils.tr("oereb.nrpoints")}</td>
-                                            <td>-</td>
-                                        </tr>
-                                    ) : null,
-                                    data.LengthShare ? (
-                                        <tr key={"symlen" + jdx}>
-                                            <td>{this.localizedText(data.LegendText)}</td>
-                                            <td><img src={symbol} /></td>
-                                            <td>{data.LengthShare}&nbsp;m</td>
-                                            {data.PartInPercent ? (<td>{data.PartInPercent.toFixed(1) + "%"}</td>) : (<td>-</td>)}
-                                        </tr>
-                                    ) : null,
-                                    data.AreaShare ? (
-                                        <tr key={"symarea" + jdx}>
-                                            <td>{this.localizedText(data.LegendText)}</td>
-                                            <td><img src={symbol} /></td>
-                                            <td>{data.AreaShare}&nbsp;m<sup>2</sup></td>
-                                            {data.PartInPercent ? (<td>{data.PartInPercent.toFixed(1) + "%"}</td>) : (<td>-</td>)}
-                                        </tr>
-                                    ) : null];
-                                })}
-                            </tbody></table>
-                            {subthemedata.fullLegend ? (
-                                <div>
-                                    <div className="oereb-document-toggle-fulllegend" onClick={() => this.toggleFullLegend(fullLegendId)}>
-                                        <a>{LocaleUtils.tr(toggleLegendMsgId)}</a>
-                                    </div>
-                                    {this.state.expandedLegend === fullLegendId ? (<div className="oereb-document-fulllegend"><img src={subthemedata.fullLegend} /></div>) : null}
-                                </div>
-                            ) : null}
-                        </div>
-                    );
-                })}
+                            ) : null,
+                            legendEntry.LengthShare ? (
+                                <tr key={"LengthShare" + idx}>
+                                    <td>{this.localizedText(legendEntry.LegendText)}</td>
+                                    <td><img src={legendEntry.SymbolRef} /></td>
+                                    <td>{legendEntry.LengthShare}&nbsp;m</td>
+                                    {legendEntry.PartInPercent ? (<td>{legendEntry.PartInPercent.toFixed(1) + "%"}</td>) : (<td>-</td>)}
+                                </tr>
+                            ) : null,
+                            legendEntry.AreaShare ? (
+                                <tr key={"AreaShare" + idx}>
+                                    <td>{this.localizedText(legendEntry.LegendText)}</td>
+                                    <td><img src={legendEntry.SymbolRef} /></td>
+                                    <td>{legendEntry.AreaShare}&nbsp;m<sup>2</sup></td>
+                                    {legendEntry.PartInPercent ? (<td>{legendEntry.PartInPercent.toFixed(1) + "%"}</td>) : (<td>-</td>)}
+                                </tr>
+                            ) : null,
+                            legendEntry.FullLegend ? (
+                                <tr key={"FullLegend" + idx}>
+                                    <td colSpan="4">
+                                        <div className="oereb-document-toggle-fulllegend" onClick={() => this.toggleFullLegend(fullLegendId)}>
+                                            <a>{LocaleUtils.tr(toggleLegendMsgId)}</a>
+                                        </div>
+                                        {this.state.expandedLegend === fullLegendId ? (<div className="oereb-document-fulllegend"><img src={subthemedata.fullLegend} /></div>) : null}
+                                    </td>
+                                </tr>
+                            ) : null
+                        ];
+                    })}
+                </tbody></table>
                 {this.renderDocuments(regulations, LocaleUtils.trmsg("oereb.regulations"))}
                 {this.renderDocuments(legalbasis, LocaleUtils.trmsg("oereb.legalbasis"))}
                 {this.renderDocuments(hints, LocaleUtils.trmsg("oereb.hints"))}
@@ -366,9 +340,8 @@ class Oereb2Document extends React.Component {
             this.props.removeLayer(layer.id);
         }
     }
-    toggleTheme = (code, subcode) => {
-        const themeId = code + ":" + (subcode || "");
-        const expandedTheme = this.state.expandedTheme === themeId ? null : themeId;
+    toggleTheme = (theme) => {
+        const expandedTheme = this.state.expandedTheme === theme.id ? null : theme.id;
         this.setState({
             expandedTheme: expandedTheme,
             expandedLegend: null
@@ -378,23 +351,20 @@ class Oereb2Document extends React.Component {
             return;
         }
 
-        const extract = this.state.oerebDoc.GetExtractByIdResponse.extract;
-        const landOwnRestr = this.ensureArray(extract.RealEstate.RestrictionOnLandownership);
-
-        const entries = this.collectConcernedThemes(landOwnRestr, code, subcode).entries;
         const subThemeLayers = new Set();
-        for (const entry of entries) {
-            if (!entry.Map || !entry.Map.ReferenceWMS || subThemeLayers.has(entry.Map.ReferenceWMS)) {
+        for (const entry of theme.entries) {
+            const referenceWMS = this.localizedText(entry?.Map?.ReferenceWMS);
+            if (!referenceWMS || subThemeLayers.has(this.localizedText(referenceWMS))) {
                 continue;
             }
-            const parts = url.parse(this.localizedText(entry.Map.ReferenceWMS), true);
+            const parts = url.parse(referenceWMS, true);
             const baseUrl = parts.protocol + '//' + parts.host + parts.pathname;
             const params = Object.entries(parts.query).reduce((res, [key, val]) => ({...res, [key.toUpperCase()]: val}), {});
             const layer = {
-                id: themeId + Date.now().toString(),
+                id: entry.uuid,
                 role: LayerRole.USERLAYER,
                 type: "wms",
-                name: themeId,
+                name: this.localizedText(entry.LegendText),
                 title: this.localizedText(entry.Theme.Text),
                 legendUrl: baseUrl,
                 url: baseUrl,
@@ -409,8 +379,7 @@ class Oereb2Document extends React.Component {
                 opacity: entry.Map.layerOpacity !== undefined ? this.ensureNumber(entry.Map.layerOpacity) * 255 : 255,
                 format: params.FORMAT,
                 params: {LAYERS: params.LAYERS},
-                __oereb_highlight: true,
-                __oereb_subtheme: entry.SubTheme
+                __oereb_highlight: true
             };
             this.props.addLayer(layer);
             subThemeLayers.add(entry.Map.ReferenceWMS);
