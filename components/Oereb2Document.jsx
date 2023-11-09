@@ -77,18 +77,14 @@ class Oereb2Document extends React.Component {
             const extract = this.state.oerebDoc.GetExtractByIdResponse.extract;
             const landOwnRestr = this.ensureArray(extract.RealEstate.RestrictionOnLandownership);
 
-            // - If subcode provided: exactly one top-level entry
-            // - If subcode not provided: one toplevel entry and subthemes rendered as childs of toplevel entry
-            // => separate toplevel entries depending on LawStatus
-
             let concernedThemes = [];
-
             if (theme.SubCode) {
-                concernedThemes = landOwnRestr.find(entry => entry.Theme.Code === theme.Code && entry.Theme.SubCode === theme.SubCode);
+                concernedThemes = landOwnRestr.filter(entry => entry.Theme.Code === theme.Code && entry.Theme.SubCode === theme.SubCode);
             } else {
                 concernedThemes = landOwnRestr.filter(entry => entry.Theme.Code === theme.Code);
             }
 
+            // separate toplevel entries depending on LawStatus
             concernedThemes.forEach(theme => {
                 const themeId = theme.Theme.Code + ":" + theme.Theme.SubCode + ":" + theme.Lawstatus.Code;
                 if (!toplevelThemes[themeId]) {
