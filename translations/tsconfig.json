@@ -24,7 +24,8 @@
     "oereb.type",
     "plotinfotool.failed",
     "plotinfotool.loading",
-    "sensorthingstool.datastreamLabel"
+    "sensorthingstool.datastreamLabel",
+    "sensorthingstool.datastreamSelectNone"
   ],
   "extra_strings": [
     "appmenu.items.PlotInfoTool",

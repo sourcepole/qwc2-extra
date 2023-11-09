@@ -96,12 +96,40 @@ class SensorThingsTool extends React.Component {
          *  }
          */
         datastreams: {},
+        /**
+         *  graph config and observations of selected datastreams
+         *
+         *  graph = {
+         *      datastreams: [
+         *          {
+         *              id: <selected Datastream ID>,   # "" if none
+         *              observations: [                 # null if none
+         *                  {
+         *                      x: <Observation time as Unix timestamp>,
+         *                      y: <Observation value>
+         *                  }
+         *              ],
+         *              loading: <whether Observations are still loading>,
+         *              color: [<r>, <g>, <b>]          # line color of this dataset in the graph
+         *          }
+         *      ]
+         *  }
+         */
         graph: {
-            datastream1: {
-                id: "",
-                observations: null,
-                loading: false
-            }
+            datastreams: [
+                {
+                    id: "",
+                    observations: null,
+                    loading: false,
+                    color: [54, 162, 235]
+                },
+                {
+                    id: "",
+                    observations: null,
+                    loading: false,
+                    color: [255, 99, 132]
+                }
+            ]
         }
     };
     componentDidUpdate(prevProps, prevState) {
@@ -137,9 +165,11 @@ class SensorThingsTool extends React.Component {
             this.props.removeLayer("sensorThingsSelection");
         }
 
-        if (this.state.graph.datastream1.id && !this.state.graph.datastream1.loading && this.state.graph.datastream1.observations === null) {
-            this.loadDatastreamObservations(0, this.state.graph.datastream1.id);
-        }
+        this.state.graph.datastreams.forEach((datastream, idx) => {
+            if (datastream.id && !datastream.loading && datastream.observations === null) {
+                this.loadDatastreamObservations(idx, datastream.id);
+            }
+        });
     }
     render() {
         if (!this.state.sensorLocation) {
@@ -178,15 +208,17 @@ class SensorThingsTool extends React.Component {
             datasets: []
         };
 
-        if (this.state.graph.datastream1.observations) {
-            // add Observations dataset
-            data.datasets.push({
-                label: this.state.datastreams[this.state.graph.datastream1.id].description,
-                data: this.state.graph.datastream1.observations,
-                borderColor: 'rgb(54, 162, 235)',
-                backgroundColor: 'rgba(54, 162, 235, 0.5)'
-            });
-        }
+        this.state.graph.datastreams.forEach((datastream, idx) => {
+            if (datastream.observations) {
+                // add Observations dataset
+                data.datasets.push({
+                    label: this.state.datastreams[datastream.id].description,
+                    data: datastream.observations,
+                    borderColor: `rgb(${datastream.color.join(',')})`,
+                    backgroundColor: `rgba(${datastream.color.join(',')},0.5)`
+                });
+            }
+        });
 
         return (
             <div className="sensor-things-dialog-body" role="body">
@@ -194,17 +226,20 @@ class SensorThingsTool extends React.Component {
                     <div className="sensor-things-location-info">
                         <b>{this.state.sensorLocation.name}</b> {this.state.sensorLocation.description}
                     </div>
-                    <div>
-                        {LocaleUtils.tr("sensorthingstool.datastreamLabel")} 1:&nbsp;
-                        <select onChange={(ev) => this.updateDatastream(0, ev.target.value)} value={this.state.graph.datastream1.id}>
-                            {this.state.sensorLocation.datastreams.map((datastreamId, idx) => {
-                                const datastream = this.state.datastreams[datastreamId];
-                                return (
-                                    <option key={"sensor-things-select-datastream-0-" + idx} value={datastream.id}>{datastream.description}</option>
-                                );
-                            })}
-                        </select>
-                    </div>
+                    {this.state.graph.datastreams.map((graphDatastreamState, datastreamIndex) => (
+                        <div key={"sensor-things-select-datastream-" + datastreamIndex}>
+                            {LocaleUtils.tr("sensorthingstool.datastreamLabel")} {datastreamIndex + 1}:&nbsp;
+                            <select onChange={(ev) => this.updateDatastream(datastreamIndex, parseInt(ev.target.value))} value={graphDatastreamState.id}>
+                                <option key={"sensor-things-select-datastream-" + datastreamIndex + "-none"} value="">{LocaleUtils.tr("sensorthingstool.datastreamSelectNone")}</option>
+                                {this.state.sensorLocation.datastreams.map((datastreamId, idx) => {
+                                    const datastream = this.state.datastreams[datastreamId];
+                                    return (
+                                        <option key={"sensor-things-select-datastream-" + datastreamIndex + "-" + idx} value={datastream.id}>{datastream.description}</option>
+                                    );
+                                })}
+                            </select>
+                        </div>
+                    ))}
                 </div>
                 <div className="sensor-things-graph">
                     <Line data={data} options={options} />
@@ -212,17 +247,23 @@ class SensorThingsTool extends React.Component {
             </div>
         );
     };
-    updateDatastream = (index, datastreamId) => {
-        if (datastreamId !== this.state.graph.datastream1.id) {
+    updateDatastream = (datastreamIndex, datastreamId) => {
+        if (datastreamId !== this.state.graph.datastreams[datastreamIndex].id) {
             this.setState((state) => ({
                 graph: {
                     ...state.graph,
-                    datastream1: {
-                        id: datastreamId,
-                        // clear observations
-                        observations: null,
-                        loading: false
-                    }
+                    datastreams: state.graph.datastreams.map((datastream, idx) => {
+                        if (idx === datastreamIndex) {
+                            return {
+                                ...datastream,
+                                id: datastreamId,
+                                // clear observations
+                                observations: null,
+                                loading: false
+                            };
+                        }
+                        return datastream;
+                    })
                 }
             }));
         }
@@ -234,11 +275,14 @@ class SensorThingsTool extends React.Component {
         }, cursor: 'crosshair'});
     };
     deactivated = () => {
-        this.updateDatastream(0, null);
+        this.clearObservations();
         this.setState({sensorLocation: null, datastreams: {}});
         this.props.changeSelectionState({geomType: null});
     };
     queryAtPoint = (point) => {
+        // clear previous observations
+        this.clearObservations();
+
         // calculate BBox for tolerance in pixels, in local SRS
         const resolution = MapUtils.computeForZoom(this.props.map.resolutions, this.props.map.zoom);
         const dx = this.props.queryTolerance * resolution;
@@ -342,15 +386,20 @@ class SensorThingsTool extends React.Component {
             this.setState({sensorLocation: null, datastreams: {}});
         });
     };
-    loadDatastreamObservations = (index, datastreamId) => {
+    loadDatastreamObservations = (datastreamIndex, datastreamId) => {
         // mark as loading
         this.setState((state) => ({
             graph: {
                 ...state.graph,
-                datastream1: {
-                    ...state.graph.datastream1,
-                    loading: true
-                }
+                datastreams: state.graph.datastreams.map((datastream, idx) => {
+                    if (idx === datastreamIndex) {
+                        return {
+                            ...datastream,
+                            loading: true
+                        };
+                    }
+                    return datastream;
+                })
             }
         }));
 
@@ -361,10 +410,10 @@ class SensorThingsTool extends React.Component {
         const filterPeriodStart = new Date(datastream.period.end - 24 * 3600 * 1000).toISOString();
         const filter = `phenomenonTime ge ${filterPeriodStart}`;
 
-        this.loadObservations(datastream.link.replace(/\/$/, '') + '/Observations', limit, 0, filter, []);
+        this.loadObservations(datastreamIndex, datastream.link.replace(/\/$/, '') + '/Observations', limit, 0, filter, []);
     };
     // load obervations with pagination
-    loadObservations = (observationsUrl, limit, skip, filter, observations) => {
+    loadObservations = (datastreamIndex, observationsUrl, limit, skip, filter, observations) => {
         const params = {
             $select: "phenomenonTime,result",
             $orderby: "phenomenonTime asc",
@@ -380,31 +429,42 @@ class SensorThingsTool extends React.Component {
 
             if (response.data['@iot.nextLink']) {
                 // load next batch
-                this.loadObservations(observationsUrl, limit, skip + response.data.value.length, filter, observations);
+                this.loadObservations(datastreamIndex, observationsUrl, limit, skip + response.data.value.length, filter, observations);
             } else {
                 // update datastream observations and reset loading
                 this.setState((state) => ({
                     graph: {
                         ...state.graph,
-                        datastream1: {
-                            ...state.graph.datastream1,
-                            // convert to dataset data for Chart.js
-                            observations: observations.map((observation) => ({
-                                // NOTE: phenomenonTime may be a time instant or period
-                                //       e.g. "2023-11-01T09:00:00Z"
-                                //       e.g. "2023-11-01T09:00:00Z/2023-11-01T10:00:00Z"
-                                // NOTE: convert to Unix timestamps for better performance
-                                x: Date.parse(observation.phenomenonTime.split('/')[0]),
-                                y: observation.result
-                            })),
-                            loading: false
-                        }
+                        datastreams: state.graph.datastreams.map((datastream, idx) => {
+                            if (idx === datastreamIndex) {
+                                return {
+                                    ...datastream,
+                                    // convert to dataset data for Chart.js
+                                    observations: observations.map((observation) => ({
+                                        // NOTE: phenomenonTime may be a time instant or period
+                                        //       e.g. "2023-11-01T09:00:00Z"
+                                        //       e.g. "2023-11-01T09:00:00Z/2023-11-01T10:00:00Z"
+                                        // NOTE: convert to Unix timestamps for better performance
+                                        x: Date.parse(observation.phenomenonTime.split('/')[0]),
+                                        y: observation.result
+                                    })),
+                                    loading: false
+                                };
+                            }
+                            return datastream;
+                        })
                     }
                 }));
             }
         }).catch(e => {
             // eslint-disable-next-line
             console.warn("SensorThings API observations query failed:", e.message);
+        });
+    };
+    // clear all datastream observations
+    clearObservations = () => {
+        this.state.graph.datastreams.forEach((datastream, idx) => {
+            this.updateDatastream(idx, "");
         });
     };
 }

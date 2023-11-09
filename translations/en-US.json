@@ -29,6 +29,7 @@
     },
     "sensorthingstool": {
       "datastreamLabel": "Datastream",
+      "datastreamSelectNone": "none",
       "title": "SensorThings Info"
     },
     "appmenu": {
