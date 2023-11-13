@@ -21,10 +21,12 @@ import {
 } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 import {Line} from 'react-chartjs-2';
+import dayjs from 'dayjs';
 import {LayerRole, addLayerFeatures, removeLayer} from 'qwc2/actions/layers';
 import {changeSelectionState} from 'qwc2/actions/selection';
 import {setCurrentTask} from 'qwc2/actions/task';
 import ResizeableWindow from 'qwc2/components/ResizeableWindow';
+import Input from 'qwc2/components/widgets/Input';
 import CoordinatesUtils from 'qwc2/utils/CoordinatesUtils';
 import LocaleUtils from 'qwc2/utils/LocaleUtils';
 import MapUtils from 'qwc2/utils/MapUtils';
@@ -100,22 +102,30 @@ class SensorThingsTool extends React.Component {
          *  graph config and observations of selected datastreams
          *
          *  graph = {
+         *      x: {                                                // x-axis config
+         *          min: <graph period start as Unix timestamp>,    // null if none
+         *          max: <graph period end as Unix timestamp>       // null if none
+         *      },
          *      datastreams: [
          *          {
-         *              id: <selected Datastream ID>,   # "" if none
-         *              observations: [                 # null if none
+         *              id: <selected Datastream ID>,   // "" if none
+         *              observations: [                 // null if none
          *                  {
          *                      x: <Observation time as Unix timestamp>,
          *                      y: <Observation value>
          *                  }
          *              ],
          *              loading: <whether Observations are still loading>,
-         *              color: [<r>, <g>, <b>]          # line color of this dataset in the graph
+         *              color: [<r>, <g>, <b>]          // line color of this dataset in the graph
          *          }
          *      ]
          *  }
          */
         graph: {
+            x: {
+                min: null, // Unix timestamp
+                max: null // Unix timestamp
+            },
             datastreams: [
                 {
                     id: "",
@@ -165,8 +175,9 @@ class SensorThingsTool extends React.Component {
             this.props.removeLayer("sensorThingsSelection");
         }
 
+        const graphPeriodChanged = (this.state.graph.x.min !== prevState.graph.x.min || this.state.graph.x.max !== prevState.graph.x.max);
         this.state.graph.datastreams.forEach((datastream, idx) => {
-            if (datastream.id && !datastream.loading && datastream.observations === null) {
+            if (datastream.id && !datastream.loading && (datastream.observations === null || graphPeriodChanged)) {
                 this.loadDatastreamObservations(idx, datastream.id);
             }
         });
@@ -200,13 +211,18 @@ class SensorThingsTool extends React.Component {
             },
             scales: {
                 x: {
-                    type: 'time'
+                    type: 'time',
+                    min: this.state.graph.x.min,
+                    max: this.state.graph.x.max
                 }
             }
         };
         const data = {
             datasets: []
         };
+
+        const periodBegin = dayjs(this.state.graph.x.min);
+        const periodEnd = dayjs(this.state.graph.x.max);
 
         this.state.graph.datastreams.forEach((datastream, idx) => {
             if (datastream.observations) {
@@ -244,6 +260,17 @@ class SensorThingsTool extends React.Component {
                 <div className="sensor-things-graph">
                     <Line data={data} options={options} />
                 </div>
+                <div className="sensor-things-graph-controls">
+                    <div className="sensor-things-toolbar">
+                        <Input onChange={this.updatePeriodBeginDate} type="date" value={periodBegin.format('YYYY-MM-DD')} />
+                        <Input onChange={this.updatePeriodBeginTime} type="time" value={periodBegin.format('HH:mm')} />
+
+                        <div className="sensor-things-toolbar-spacer" />
+
+                        <Input onChange={this.updatePeriodEndDate} type="date" value={periodEnd.format('YYYY-MM-DD')} />
+                        <Input onChange={this.updatePeriodEndTime} type="time" value={periodEnd.format('HH:mm')} />
+                    </div>
+                </div>
             </div>
         );
     };
@@ -273,11 +300,21 @@ class SensorThingsTool extends React.Component {
             fillColor: [0, 0, 0, 0],
             strokeColor: [0, 0, 0, 0]
         }, cursor: 'crosshair'});
+        this.initPeriod();
     };
     deactivated = () => {
         this.clearObservations();
         this.setState({sensorLocation: null, datastreams: {}});
         this.props.changeSelectionState({geomType: null});
+    };
+    initPeriod = () => {
+        if (this.state.graph.x.min === null) {
+            // set initial default period to the last 24h
+            this.updateGraphAxis('x', {
+                min: Date.now() - 24 * 3600 * 1000,
+                max: Date.now()
+            });
+        }
     };
     queryAtPoint = (point) => {
         // clear previous observations
@@ -405,10 +442,11 @@ class SensorThingsTool extends React.Component {
 
         const limit = 10000;
 
-        // get Observations within most recent 24h before the period end of the Datastream
+        // get Observations within selected graph period
         const datastream = this.state.datastreams[datastreamId];
-        const filterPeriodStart = new Date(datastream.period.end - 24 * 3600 * 1000).toISOString();
-        const filter = `phenomenonTime ge ${filterPeriodStart}`;
+        const filterPeriodStart = dayjs(this.state.graph.x.min).toISOString();
+        const filterPeriodEnd = dayjs(this.state.graph.x.max).toISOString();
+        const filter = `phenomenonTime ge ${filterPeriodStart} and phenomenonTime le ${filterPeriodEnd}`;
 
         this.loadObservations(datastreamIndex, datastream.link.replace(/\/$/, '') + '/Observations', limit, 0, filter, []);
     };
@@ -466,6 +504,49 @@ class SensorThingsTool extends React.Component {
         this.state.graph.datastreams.forEach((datastream, idx) => {
             this.updateDatastream(idx, "");
         });
+    };
+    updatePeriodBeginDate = (dateString) => {
+        if (dateString) {
+            this.updateGraphAxis('x', {min: this.timestampAtDate(this.state.graph.x.min, dateString)});
+        }
+    };
+    updatePeriodBeginTime = (timeString) => {
+        if (timeString) {
+            this.updateGraphAxis('x', {min: this.timestampAtTime(this.state.graph.x.min, timeString)});
+        }
+    };
+    updatePeriodEndDate = (dateString) => {
+        if (dateString) {
+            this.updateGraphAxis('x', {max: this.timestampAtDate(this.state.graph.x.max, dateString)});
+        }
+    };
+    updatePeriodEndTime = (timeString) => {
+        if (timeString) {
+            this.updateGraphAxis('x', {max: this.timestampAtTime(this.state.graph.x.max, timeString)});
+        }
+    };
+    // return timestamp with new date part
+    // dateString = "<YYYY-MM-DD>"
+    timestampAtDate = (timestamp, dateString) => {
+        const newDate = dayjs(dateString, "YYYY-MM-DD");
+        return dayjs(timestamp).year(newDate.year()).month(newDate.month()).date(newDate.date()).valueOf();
+    };
+    // return timestamp with new time part
+    // timeString = "<HH:mm>"
+    timestampAtTime = (timestamp, timeString) => {
+        const parts = timeString.split(":").map(value => parseInt(value, 10));
+        return dayjs(timestamp).hour(parts[0]).minute(parts[1]).second(0).millisecond(0).valueOf();
+    };
+    updateGraphAxis = (axis, diff) => {
+        this.setState((state) => ({
+            graph: {
+                ...state.graph,
+                [axis]: {
+                    ...state.graph[axis],
+                    ...diff
+                }
+            }
+        }));
     };
 }
 

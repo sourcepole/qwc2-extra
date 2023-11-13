@@ -10,3 +10,10 @@ div.resizeable-window-body-nonscrollable div.sensor-things-dialog-body {
 div.sensor-things-graph {
     height: 100%;
 }
+
+div.sensor-things-toolbar {
+    display: flex;
+}
+div.sensor-things-toolbar-spacer {
+    flex: 1 1 auto;
+}
