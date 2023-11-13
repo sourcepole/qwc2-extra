@@ -25,7 +25,11 @@
     "plotinfotool.failed",
     "plotinfotool.loading",
     "sensorthingstool.datastreamLabel",
-    "sensorthingstool.datastreamSelectNone"
+    "sensorthingstool.datastreamSelectNone",
+    "sensorthingstool.graphOptions.yAuto",
+    "sensorthingstool.graphOptions.yAxis",
+    "sensorthingstool.graphOptions.yMax",
+    "sensorthingstool.graphOptions.yMin"
   ],
   "extra_strings": [
     "appmenu.items.PlotInfoTool",

@@ -30,6 +30,12 @@
     "sensorthingstool": {
       "datastreamLabel": "Datastream",
       "datastreamSelectNone": "none",
+      "graphOptions": {
+        "yAuto": "auto",
+        "yAxis": "Y-axis",
+        "yMax": "Upper limit",
+        "yMin": "Lower limit"
+      },
       "title": "SensorThings Info"
     },
     "appmenu": {

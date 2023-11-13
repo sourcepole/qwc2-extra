@@ -25,8 +25,10 @@ import dayjs from 'dayjs';
 import {LayerRole, addLayerFeatures, removeLayer} from 'qwc2/actions/layers';
 import {changeSelectionState} from 'qwc2/actions/selection';
 import {setCurrentTask} from 'qwc2/actions/task';
+import Icon from 'qwc2/components/Icon';
 import ResizeableWindow from 'qwc2/components/ResizeableWindow';
 import Input from 'qwc2/components/widgets/Input';
+import NumberInput from 'qwc2/components/widgets/NumberInput';
 import CoordinatesUtils from 'qwc2/utils/CoordinatesUtils';
 import LocaleUtils from 'qwc2/utils/LocaleUtils';
 import MapUtils from 'qwc2/utils/MapUtils';
@@ -106,6 +108,10 @@ class SensorThingsTool extends React.Component {
          *          min: <graph period start as Unix timestamp>,    // null if none
          *          max: <graph period end as Unix timestamp>       // null if none
          *      },
+         *      y: {                                                // y-axis config
+         *          min: <graph min value>,                         // null if auto
+         *          max: <graph max value>                          // null if auto
+         *      },
          *      datastreams: [
          *          {
          *              id: <selected Datastream ID>,   // "" if none
@@ -126,6 +132,10 @@ class SensorThingsTool extends React.Component {
                 min: null, // Unix timestamp
                 max: null // Unix timestamp
             },
+            y: {
+                min: null,
+                max: null
+            },
             datastreams: [
                 {
                     id: "",
@@ -140,7 +150,9 @@ class SensorThingsTool extends React.Component {
                     color: [255, 99, 132]
                 }
             ]
-        }
+        },
+        // true if graph options are shown
+        graphOptionsPopup: false
     };
     componentDidUpdate(prevProps, prevState) {
         if (this.props.currentTask === 'SensorThingsTool' && prevProps.currentTask !== 'SensorThingsTool') {
@@ -214,6 +226,11 @@ class SensorThingsTool extends React.Component {
                     type: 'time',
                     min: this.state.graph.x.min,
                     max: this.state.graph.x.max
+                },
+                y: {
+                    type: 'linear',
+                    min: this.state.graph.y.min,
+                    max: this.state.graph.y.max
                 }
             }
         };
@@ -235,6 +252,37 @@ class SensorThingsTool extends React.Component {
                 });
             }
         });
+
+        const graphOptions = this.state.graphOptionsPopup ? (
+            <div className="sensor-things-graph-options">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td><b>{LocaleUtils.tr("sensorthingstool.graphOptions.yAxis")}</b></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>{LocaleUtils.tr("sensorthingstool.graphOptions.yMax")}:</td>
+                            <td>
+                                <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y', {max: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y.max} />
+                                <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y', {max: null})}>
+                                    <Icon icon="clear" />
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>{LocaleUtils.tr("sensorthingstool.graphOptions.yMin")}:</td>
+                            <td>
+                                <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y', {min: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y.min} />
+                                <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y', {min: null})}>
+                                    <Icon icon="clear" />
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        ) : null;
 
         return (
             <div className="sensor-things-dialog-body" role="body">
@@ -264,6 +312,15 @@ class SensorThingsTool extends React.Component {
                     <div className="sensor-things-toolbar">
                         <Input onChange={this.updatePeriodBeginDate} type="date" value={periodBegin.format('YYYY-MM-DD')} />
                         <Input onChange={this.updatePeriodBeginTime} type="time" value={periodBegin.format('HH:mm')} />
+
+                        <div className="sensor-things-toolbar-spacer" />
+
+                        <div>
+                            <button className={"button" + (this.state.graphOptionsPopup ? " pressed" : "")} onClick={() => this.setState((state) => ({graphOptionsPopup: !state.graphOptionsPopup}))}>
+                                <Icon icon="cog" />
+                            </button>
+                            {graphOptions}
+                        </div>
 
                         <div className="sensor-things-toolbar-spacer" />
 
