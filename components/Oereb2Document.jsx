@@ -372,7 +372,7 @@ class Oereb2Document extends React.Component {
                     bounds: params.BBOX.split(',')
                 },
                 visibility: true,
-                opacity: entry.Map.layerOpacity !== undefined ? this.ensureNumber(entry.Map.layerOpacity) * 255 : 255,
+                opacity: entry.Map.layerOpacity !== undefined ? Math.round(this.ensureNumber(entry.Map.layerOpacity) * 255) : 255,
                 format: params.FORMAT,
                 params: {LAYERS: params.LAYERS},
                 __oereb_highlight: true
