@@ -265,7 +265,27 @@ class SensorThingsTool extends React.Component {
                     label: this.state.datastreams[datastream.id].description,
                     data: datastream.observations,
                     borderColor: `rgb(${datastream.color.join(',')})`,
-                    backgroundColor: `rgba(${datastream.color.join(',')},0.5)`
+                    backgroundColor: `rgba(${datastream.color.join(',')},0.5)`,
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                const value = context.formattedValue;
+                                if (value !== null) {
+                                    label += value;
+                                    const unit = this.state.datastreams[datastream.id].unitOfMeasurement.symbol;
+                                    if (unit !== null) {
+                                        // append Datastream unit to value
+                                        label += ' ' + unit;
+                                    }
+                                }
+                                return label;
+                            }
+                        }
+                    }
                 });
             }
         });
