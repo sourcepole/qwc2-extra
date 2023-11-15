@@ -19,7 +19,7 @@ import {
     Tooltip,
     TimeScale
 } from 'chart.js';
-import 'chartjs-adapter-date-fns';
+import 'chartjs-adapter-dayjs-4';
 import {Line} from 'react-chartjs-2';
 import dayjs from 'dayjs';
 import {LayerRole, addLayerFeatures, removeLayer} from 'qwc2/actions/layers';
@@ -55,10 +55,23 @@ class SensorThingsTool extends React.Component {
         selection: PropTypes.object,
         sensorThingsApiUrl: PropTypes.string,
         setCurrentTask: PropTypes.func,
+        timeFormats: PropTypes.object,
         windowSize: PropTypes.object
     };
     static defaultProps = {
         queryTolerance: 16,
+        timeFormats: {
+            tooltip: 'YYYY-MM-DD HH:mm:ss',
+            millisecond: 'HH:mm:ss.SSS',
+            second: 'HH:mm:ss',
+            minute: 'HH:mm',
+            hour: 'HH:mm',
+            day: 'MM-DD',
+            week: 'YYYY-MM-DD',
+            month: 'YYYY-MM',
+            quarter: '[Q]Q - YYYY',
+            year: 'YYYY'
+        },
         windowSize: {width: 500, height: 800}
     };
     state = {
@@ -225,7 +238,11 @@ class SensorThingsTool extends React.Component {
                 x: {
                     type: 'time',
                     min: this.state.graph.x.min,
-                    max: this.state.graph.x.max
+                    max: this.state.graph.x.max,
+                    time: {
+                        tooltipFormat: this.props.timeFormats.tooltip,
+                        displayFormats: this.props.timeFormats
+                    }
                 },
                 y: {
                     type: 'linear',

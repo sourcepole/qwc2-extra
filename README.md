@@ -117,6 +117,18 @@ Plugin for querying observations from a SensorThings API server and displaying t
         "cfg": {
           "sensorThingsApiUrl": "https://airquality-frost.k8s.ilt-dmz.iosb.fraunhofer.de/v1.1",
           "queryTolerance": 16,
+          "timeFormats": {
+            "tooltip": "YYYY-MM-DD HH:mm:ss",
+            "millisecond": "HH:mm:ss.SSS",
+            "second": "HH:mm:ss",
+            "minute": "HH:mm",
+            "hour": "HH:mm",
+            "day": "MM-DD",
+            "week": "YYYY-MM-DD",
+            "month": "YYYY-MM",
+            "quarter": "[Q]Q - YYYY",
+            "year": "YYYY"
+          },
           "windowSize": {
             "width": 800, "height": 500
           }
@@ -132,6 +144,8 @@ Plugin for querying observations from a SensorThings API server and displaying t
 
 * `sensorThingsApiUrl`: Base URL of SensorThings API
 * `queryTolerance` (optional, default: `16`): Tolerance in pixels around query position
+* `timeFormats` (optional, defaults: see above): Display formats for time units of time axis in graph (cf. [Day.js docs](https://day.js.org/docs/en/display/format))
+  * `tooltip`: Display format for date and time in graph tooltips
 * `windowSize` (optional, default: 800x500): Inital window size
 
 

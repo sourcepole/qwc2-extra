@@ -7,8 +7,7 @@
     "repository": "git@github.com:sourcepole/qwc2-extra.git",
     "dependencies": {
         "axios": "1.2.3",
-        "date-fns": "2.30.0",
-        "chartjs-adapter-date-fns": "3.0.0",
+        "chartjs-adapter-dayjs-4": "1.0.4",
         "file-saver": "2.0.5",
         "lodash.isempty": "4.4.0",
         "prop-types": "15.8.1",
