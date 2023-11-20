@@ -330,7 +330,7 @@ class SensorThingsTool extends React.Component {
                     {this.state.graph.datastreams.map((graphDatastreamState, datastreamIndex) => (
                         <div key={"sensor-things-select-datastream-" + datastreamIndex}>
                             {LocaleUtils.tr("sensorthingstool.datastreamLabel")} {datastreamIndex + 1}:&nbsp;
-                            <select onChange={(ev) => this.updateDatastream(datastreamIndex, parseInt(ev.target.value))} value={graphDatastreamState.id}>
+                            <select onChange={(ev) => this.updateDatastream(datastreamIndex, parseInt(ev.target.value, 10) || "")} value={graphDatastreamState.id}>
                                 <option key={"sensor-things-select-datastream-" + datastreamIndex + "-none"} value="">{LocaleUtils.tr("sensorthingstool.datastreamSelectNone")}</option>
                                 {this.state.sensorLocation.datastreams.map((datastreamId, idx) => {
                                     const datastream = this.state.datastreams[datastreamId];
