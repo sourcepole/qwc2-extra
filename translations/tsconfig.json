@@ -26,6 +26,8 @@
     "plotinfotool.loading",
     "sensorthingstool.datastreamLabel",
     "sensorthingstool.datastreamSelectNone",
+    "sensorthingstool.graphOptions.toggleGridLines",
+    "sensorthingstool.graphOptions.toggleSecondYAxis",
     "sensorthingstool.graphOptions.yAuto",
     "sensorthingstool.graphOptions.yAxis",
     "sensorthingstool.graphOptions.yMax",

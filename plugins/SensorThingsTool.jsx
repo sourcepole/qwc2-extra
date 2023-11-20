@@ -125,6 +125,12 @@ class SensorThingsTool extends React.Component {
          *          min: <graph min value>,                         // null if auto
          *          max: <graph max value>                          // null if auto
          *      },
+         *      y2: {                                               // second y-axis config
+         *          enabled: <whether second y-axis is shown>,
+         *          min: <graph min value>,                         // null if auto
+         *          max: <graph max value>                          // null if auto
+         *          showGrid: <whether grid lines for second y-axis are shown>,
+         *      },
          *      datastreams: [
          *          {
          *              id: <selected Datastream ID>,   // "" if none
@@ -148,6 +154,12 @@ class SensorThingsTool extends React.Component {
             y: {
                 min: null,
                 max: null
+            },
+            y2: {
+                enabled: false,
+                min: null,
+                max: null,
+                showGrid: true
             },
             datastreams: [
                 {
@@ -258,10 +270,12 @@ class SensorThingsTool extends React.Component {
         const periodBegin = dayjs(this.state.graph.x.min);
         const periodEnd = dayjs(this.state.graph.x.max);
 
+        let yUnit = null;
+        let yRightUnit = null;
         this.state.graph.datastreams.forEach((datastream, idx) => {
             if (datastream.observations) {
                 // add Observations dataset
-                data.datasets.push({
+                const dataset = {
                     label: this.state.datastreams[datastream.id].description,
                     data: datastream.observations,
                     borderColor: `rgb(${datastream.color.join(',')})`,
@@ -285,10 +299,57 @@ class SensorThingsTool extends React.Component {
                                 return label;
                             }
                         }
+                    },
+                    yAxisID: 'y'
+                };
+
+                if (this.state.graph.y2.enabled) {
+                    // set target y-axis
+                    dataset.yAxisID = (idx === 1) ? 'yRight' : 'y';
+
+                    // collect units for y-axis titles
+                    const unit = this.state.datastreams[datastream.id].unitOfMeasurement.symbol;
+                    if (idx === 0) {
+                        yUnit = unit;
+                    } else if (idx === 1) {
+                        yRightUnit = unit;
                     }
-                });
+                }
+
+                data.datasets.push(dataset);
             }
         });
+
+        if (this.state.graph.y2.enabled) {
+            // add right y-axis
+            options.scales.yRight = {
+                type: 'linear',
+                position: 'right',
+                display: 'auto',
+                min: this.state.graph.y2.min,
+                max: this.state.graph.y2.max,
+                grid: {
+                    drawOnChartArea: this.state.graph.y2.showGrid
+                },
+                border: {
+                    dash: [4, 4]
+                }
+            };
+
+            // set y-axis titles
+            if (yUnit !== null) {
+                options.scales.y.title = {
+                    text: yUnit,
+                    display: true
+                };
+            }
+            if (yRightUnit !== null) {
+                options.scales.yRight.title = {
+                    text: yRightUnit,
+                    display: true
+                };
+            }
+        }
 
         const graphOptions = this.state.graphOptionsPopup ? (
             <div className="sensor-things-graph-options">
@@ -296,7 +357,10 @@ class SensorThingsTool extends React.Component {
                     <tbody>
                         <tr>
                             <td><b>{LocaleUtils.tr("sensorthingstool.graphOptions.yAxis")}</b></td>
-                            <td></td>
+                            {this.state.graph.y2.enabled ? (<td />) : null}
+                            <td>
+                                <label><input checked={this.state.graph.y2.enabled} onChange={(ev) => this.updateGraphAxis('y2', {enabled: ev.target.checked})} type="checkbox"  /> {LocaleUtils.tr("sensorthingstool.graphOptions.toggleSecondYAxis")}</label>
+                            </td>
                         </tr>
                         <tr>
                             <td>{LocaleUtils.tr("sensorthingstool.graphOptions.yMax")}:</td>
@@ -306,6 +370,14 @@ class SensorThingsTool extends React.Component {
                                     <Icon icon="clear" />
                                 </button>
                             </td>
+                            {this.state.graph.y2.enabled ? (
+                                <td>
+                                    <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y2', {max: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y2.max} />
+                                    <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y2', {max: null})}>
+                                        <Icon icon="clear" />
+                                    </button>
+                                </td>
+                            ) : null}
                         </tr>
                         <tr>
                             <td>{LocaleUtils.tr("sensorthingstool.graphOptions.yMin")}:</td>
@@ -315,7 +387,24 @@ class SensorThingsTool extends React.Component {
                                     <Icon icon="clear" />
                                 </button>
                             </td>
+                            {this.state.graph.y2.enabled ? (
+                                <td>
+                                    <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y2', {min: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y2.min} />
+                                    <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y2', {min: null})}>
+                                        <Icon icon="clear" />
+                                    </button>
+                                </td>
+                            ) : null}
                         </tr>
+                        {this.state.graph.y2.enabled ? (
+                            <tr>
+                                <td />
+                                <td />
+                                <td>
+                                    <label><input checked={this.state.graph.y2.showGrid} onChange={(ev) => this.updateGraphAxis('y2', {showGrid: ev.target.checked})} type="checkbox" /> {LocaleUtils.tr("sensorthingstool.graphOptions.toggleGridLines")}</label>
+                                </td>
+                            </tr>
+                        ) : null}
                     </tbody>
                 </table>
             </div>
