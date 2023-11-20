@@ -542,10 +542,10 @@ class SensorThingsTool extends React.Component {
         const filterPeriodEnd = dayjs(this.state.graph.x.max).toISOString();
         const filter = `phenomenonTime ge ${filterPeriodStart} and phenomenonTime le ${filterPeriodEnd}`;
 
-        this.loadObservations(datastreamIndex, datastream.link.replace(/\/$/, '') + '/Observations', limit, 0, filter, []);
+        this.loadObservations(datastreamIndex, datastreamId, datastream.link.replace(/\/$/, '') + '/Observations', limit, 0, filter, []);
     };
     // load obervations with pagination
-    loadObservations = (datastreamIndex, observationsUrl, limit, skip, filter, observations) => {
+    loadObservations = (datastreamIndex, datastreamId, observationsUrl, limit, skip, filter, observations) => {
         const params = {
             $select: "phenomenonTime,result",
             $orderby: "phenomenonTime asc",
@@ -556,12 +556,17 @@ class SensorThingsTool extends React.Component {
             params.$filter = filter;
         }
         axios.get(observationsUrl, {params}).then(response => {
+            if (datastreamId !== this.state.graph.datastreams[datastreamIndex].id) {
+                // skip results, as a different Datastream has been selected in the meantime while this request was still loading
+                return;
+            }
+
             // add current batch to observations
             observations = observations.concat(response.data.value);
 
             if (response.data['@iot.nextLink']) {
                 // load next batch
-                this.loadObservations(datastreamIndex, observationsUrl, limit, skip + response.data.value.length, filter, observations);
+                this.loadObservations(datastreamIndex, datastreamId, observationsUrl, limit, skip + response.data.value.length, filter, observations);
             } else {
                 // update datastream observations and reset loading
                 this.setState((state) => ({
