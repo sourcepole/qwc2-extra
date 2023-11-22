@@ -474,6 +474,18 @@ class SensorThingsTool extends React.Component {
 
                         <div className="sensor-things-toolbar-spacer-small" />
 
+                        <button className="button" onClick={this.updatePeriodPrevInterval}>
+                            <Icon icon="nav-left" />
+                        </button>
+                        <button className="button" onClick={this.updatePeriodNextInterval}>
+                            <Icon icon="nav-right" />
+                        </button>
+                        <button className="button" onClick={this.updatePeriodNow}>
+                            <Icon icon="today" />
+                        </button>
+
+                        <div className="sensor-things-toolbar-spacer-small" />
+
                         <div>
                             <button className={"button" + (this.state.graphOptionsPopup ? " pressed" : "")} onClick={() => this.setState((state) => ({graphOptionsPopup: !state.graphOptionsPopup}))}>
                                 <Icon icon="cog" />
@@ -526,9 +538,10 @@ class SensorThingsTool extends React.Component {
     initPeriod = () => {
         if (this.state.graph.x.min === null) {
             // set initial default period to the last 24h
+            const now = Date.now();
             this.updateGraphAxis('x', {
-                min: Date.now() - 24 * 3600 * 1000,
-                max: Date.now()
+                min: now - 24 * 3600 * 1000,
+                max: now
             });
         }
     };
@@ -757,6 +770,19 @@ class SensorThingsTool extends React.Component {
             // update period begin for selected interval before current period end
             this.updateGraphAxis('x', {min: this.state.graph.x.max - this.state.selectedInterval});
         }
+    };
+    updatePeriodPrevInterval = () => {
+        const interval = this.state.graph.x.max - this.state.graph.x.min;
+        this.updateGraphAxis('x', {min: this.state.graph.x.min - interval, max: this.state.graph.x.max - interval});
+    };
+    updatePeriodNextInterval = () => {
+        const interval = this.state.graph.x.max - this.state.graph.x.min;
+        this.updateGraphAxis('x', {min: this.state.graph.x.min + interval, max: this.state.graph.x.max + interval});
+    };
+    updatePeriodNow = () => {
+        const interval = this.state.graph.x.max - this.state.graph.x.min;
+        const now = Date.now();
+        this.updateGraphAxis('x', {min: now - interval, max: now});
     };
     // return timestamp with new date part
     // dateString = "<YYYY-MM-DD>"
