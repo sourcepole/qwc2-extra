@@ -38,6 +38,14 @@
         "yMax": "Upper limit",
         "yMin": "Lower limit"
       },
+      "intervalOptions": {
+        "custom": "Custom",
+        "day": "Day",
+        "hour": "Hour",
+        "month": "Month",
+        "week": "Week",
+        "year": "Year"
+      },
       "title": "SensorThings Info"
     },
     "appmenu": {

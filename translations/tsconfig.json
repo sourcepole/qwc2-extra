@@ -31,7 +31,13 @@
     "sensorthingstool.graphOptions.yAuto",
     "sensorthingstool.graphOptions.yAxis",
     "sensorthingstool.graphOptions.yMax",
-    "sensorthingstool.graphOptions.yMin"
+    "sensorthingstool.graphOptions.yMin",
+    "sensorthingstool.intervalOptions.custom",
+    "sensorthingstool.intervalOptions.day",
+    "sensorthingstool.intervalOptions.hour",
+    "sensorthingstool.intervalOptions.month",
+    "sensorthingstool.intervalOptions.week",
+    "sensorthingstool.intervalOptions.year"
   ],
   "extra_strings": [
     "appmenu.items.PlotInfoTool",

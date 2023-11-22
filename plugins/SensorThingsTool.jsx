@@ -72,7 +72,7 @@ class SensorThingsTool extends React.Component {
             quarter: '[Q]Q - YYYY',
             year: 'YYYY'
         },
-        windowSize: {width: 500, height: 800}
+        windowSize: {width: 800, height: 500}
     };
     state = {
         /**
@@ -176,6 +176,8 @@ class SensorThingsTool extends React.Component {
                 }
             ]
         },
+        // selected interval preset in ms (-1 if not set)
+        selectedInterval: -1,
         // true if graph options are shown
         graphOptionsPopup: false
     };
@@ -218,6 +220,12 @@ class SensorThingsTool extends React.Component {
                 this.loadDatastreamObservations(idx, datastream.id);
             }
         });
+        if (graphPeriodChanged) {
+            const interval = this.state.graph.x.max - this.state.graph.x.min;
+            if (this.state.selectedInterval !== interval) {
+                this.setState({selectedInterval: interval});
+            }
+        }
     }
     render() {
         if (!this.state.sensorLocation) {
@@ -351,6 +359,15 @@ class SensorThingsTool extends React.Component {
             }
         }
 
+        const intervalOptions = [
+            {label: LocaleUtils.tr("sensorthingstool.intervalOptions.custom"), interval: -1}, // custom
+            {label: LocaleUtils.tr("sensorthingstool.intervalOptions.hour"), interval: 3600000}, // 3600 * 1000 ms
+            {label: LocaleUtils.tr("sensorthingstool.intervalOptions.day"), interval: 86400000}, // 24 * 3600 * 1000 ms
+            {label: LocaleUtils.tr("sensorthingstool.intervalOptions.week"), interval: 604800000}, // 7 * 24 * 3600 * 1000 ms
+            {label: LocaleUtils.tr("sensorthingstool.intervalOptions.month"), interval: 2678400000}, // 31 * 24 * 3600 * 1000 ms
+            {label: LocaleUtils.tr("sensorthingstool.intervalOptions.year"), interval: 31536000000} // 365 * 24 * 3600 * 1000 ms
+        ];
+
         const graphOptions = this.state.graphOptionsPopup ? (
             <div className="sensor-things-graph-options">
                 <table>
@@ -440,6 +457,22 @@ class SensorThingsTool extends React.Component {
                         <Input onChange={this.updatePeriodBeginTime} type="time" value={periodBegin.format('HH:mm')} />
 
                         <div className="sensor-things-toolbar-spacer" />
+
+                        <button className="button" onClick={this.updatePeriodIntervalAfterBegin}>
+                            <Icon icon="after" />
+                        </button>
+                        <select onChange={(ev) => this.setState({selectedInterval: parseInt(ev.target.value, 10)})} value={this.state.selectedInterval}>
+                            {intervalOptions.map((interval, idx) => {
+                                return (
+                                    <option key={"sensor-things-select-interval-" + idx} value={interval.interval}>{interval.label}</option>
+                                );
+                            })}
+                        </select>
+                        <button className="button" onClick={this.updatePeriodIntervalBeforeEnd}>
+                            <Icon icon="before" />
+                        </button>
+
+                        <div className="sensor-things-toolbar-spacer-small" />
 
                         <div>
                             <button className={"button" + (this.state.graphOptionsPopup ? " pressed" : "")} onClick={() => this.setState((state) => ({graphOptionsPopup: !state.graphOptionsPopup}))}>
@@ -711,6 +744,18 @@ class SensorThingsTool extends React.Component {
     updatePeriodEndTime = (timeString) => {
         if (timeString) {
             this.updateGraphAxis('x', {max: this.timestampAtTime(this.state.graph.x.max, timeString)});
+        }
+    };
+    updatePeriodIntervalAfterBegin = () => {
+        if (this.state.selectedInterval !== -1) {
+            // update period end for selected interval after current period start
+            this.updateGraphAxis('x', {max: this.state.graph.x.min + this.state.selectedInterval});
+        }
+    };
+    updatePeriodIntervalBeforeEnd = () => {
+        if (this.state.selectedInterval !== -1) {
+            // update period begin for selected interval before current period end
+            this.updateGraphAxis('x', {min: this.state.graph.x.max - this.state.selectedInterval});
         }
     };
     // return timestamp with new date part

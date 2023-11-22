@@ -17,6 +17,9 @@ div.sensor-things-toolbar {
 div.sensor-things-toolbar-spacer {
     flex: 1 1 auto;
 }
+div.sensor-things-toolbar-spacer-small {
+    width: 0.5em;
+}
 
 div.sensor-things-graph-options {
     padding: 0.25em;
