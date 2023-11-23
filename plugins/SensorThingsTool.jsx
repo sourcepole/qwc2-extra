@@ -176,6 +176,8 @@ class SensorThingsTool extends React.Component {
                 }
             ]
         },
+        // current time slider value as Unix timestamp
+        timeSliderValue: null,
         // selected interval preset in ms (-1 if not set)
         selectedInterval: -1,
         // true if graph options are shown
@@ -220,6 +222,12 @@ class SensorThingsTool extends React.Component {
                 this.loadDatastreamObservations(idx, datastream.id);
             }
         });
+        if (this.state.graph.x.min !== prevState.graph.x.min) {
+            const periodBegin = this.state.graph.x.min;
+            if (this.state.timeSliderValue !== periodBegin) {
+                this.setState({timeSliderValue: periodBegin});
+            }
+        }
         if (graphPeriodChanged) {
             const interval = this.state.graph.x.max - this.state.graph.x.min;
             if (this.state.selectedInterval !== interval) {
@@ -280,11 +288,14 @@ class SensorThingsTool extends React.Component {
 
         let yUnit = null;
         let yRightUnit = null;
+        let fullDatastreamsPeriodBegin = null;
+        let fullDatastreamsPeriodEnd = null;
         this.state.graph.datastreams.forEach((datastream, idx) => {
             if (datastream.observations) {
+                const datastreamInfo = this.state.datastreams[datastream.id];
                 // add Observations dataset
                 const dataset = {
-                    label: this.state.datastreams[datastream.id].description,
+                    label: datastreamInfo.description,
                     data: datastream.observations,
                     borderColor: `rgb(${datastream.color.join(',')})`,
                     backgroundColor: `rgba(${datastream.color.join(',')},0.5)`,
@@ -298,7 +309,7 @@ class SensorThingsTool extends React.Component {
                                 const value = context.formattedValue;
                                 if (value !== null) {
                                     label += value;
-                                    const unit = this.state.datastreams[datastream.id].unitOfMeasurement.symbol;
+                                    const unit = datastreamInfo.unitOfMeasurement.symbol;
                                     if (unit !== null) {
                                         // append Datastream unit to value
                                         label += ' ' + unit;
@@ -316,13 +327,17 @@ class SensorThingsTool extends React.Component {
                     dataset.yAxisID = (idx === 1) ? 'yRight' : 'y';
 
                     // collect units for y-axis titles
-                    const unit = this.state.datastreams[datastream.id].unitOfMeasurement.symbol;
+                    const unit = datastreamInfo.unitOfMeasurement.symbol;
                     if (idx === 0) {
                         yUnit = unit;
                     } else if (idx === 1) {
                         yRightUnit = unit;
                     }
                 }
+
+                // collect combined period
+                fullDatastreamsPeriodBegin = Math.min(datastreamInfo.period.begin, fullDatastreamsPeriodBegin || datastreamInfo.period.begin);
+                fullDatastreamsPeriodEnd = Math.max(datastreamInfo.period.end, fullDatastreamsPeriodEnd || datastreamInfo.period.end);
 
                 data.datasets.push(dataset);
             }
@@ -452,6 +467,8 @@ class SensorThingsTool extends React.Component {
                     <Line data={data} options={options} />
                 </div>
                 <div className="sensor-things-graph-controls">
+                    {this.renderTimeSlider(fullDatastreamsPeriodBegin, fullDatastreamsPeriodEnd)}
+
                     <div className="sensor-things-toolbar">
                         <Input onChange={this.updatePeriodBeginDate} type="date" value={periodBegin.format('YYYY-MM-DD')} />
                         <Input onChange={this.updatePeriodBeginTime} type="time" value={periodBegin.format('HH:mm')} />
@@ -499,6 +516,21 @@ class SensorThingsTool extends React.Component {
                         <Input onChange={this.updatePeriodEndTime} type="time" value={periodEnd.format('HH:mm')} />
                     </div>
                 </div>
+            </div>
+        );
+    };
+    renderTimeSlider = (fullDatastreamsPeriodBegin, fullDatastreamsPeriodEnd) => {
+        const timeSliderBegin = fullDatastreamsPeriodBegin;
+        const timeSliderEnd = fullDatastreamsPeriodEnd;
+        // set step size to 24h
+        const timeSliderStep = 86400000; // 24 * 3600 * 1000
+
+        return (
+            <div className="sensor-things-timeslider">
+                <input max={timeSliderEnd} min={timeSliderBegin} onChange={(ev) => this.setState({timeSliderValue: parseInt(ev.target.value, 10)})} onKeyUp={this.updatePeriodFromTimeSlider} onMouseUp={this.updatePeriodFromTimeSlider} onTouchEnd={this.updatePeriodFromTimeSlider} step={timeSliderStep} type="range" value={this.state.timeSliderValue} />
+                <span className="sensor-things-timeslider-tooltip">
+                    {dayjs(this.state.timeSliderValue).format(this.props.timeFormats.tooltip)}
+                </span>
             </div>
         );
     };
@@ -758,6 +790,11 @@ class SensorThingsTool extends React.Component {
         if (timeString) {
             this.updateGraphAxis('x', {max: this.timestampAtTime(this.state.graph.x.max, timeString)});
         }
+    };
+    updatePeriodFromTimeSlider = (timestamp) => {
+        // move current interval to begin at new timestamp from time slider
+        const interval = this.state.graph.x.max - this.state.graph.x.min;
+        this.updateGraphAxis('x', {min: this.state.timeSliderValue, max: this.state.timeSliderValue + interval});
     };
     updatePeriodIntervalAfterBegin = () => {
         if (this.state.selectedInterval !== -1) {

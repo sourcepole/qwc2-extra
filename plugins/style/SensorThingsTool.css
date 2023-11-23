@@ -21,6 +21,32 @@ div.sensor-things-toolbar-spacer-small {
     width: 0.5em;
 }
 
+div.sensor-things-timeslider {
+    display: flex;
+    padding-bottom: 0.5em;
+    position: relative;
+}
+div.sensor-things-timeslider input[type="range"] {
+    width: 100%;
+    flex: 1 1 auto;
+}
+div.sensor-things-timeslider span.sensor-things-timeslider-tooltip {
+    visibility: hidden;
+    position: absolute;
+    top: -2.75em;
+    padding: 0.5em;
+    background-color: var(--tooltip-bg-color);
+    color: var(--tooltip-text-color);
+    border: 1px solid var(--tooltip-border-color);
+    border-radius: 0.5em;
+    font-size: 75%;
+    font-weight: normal;
+    white-space: nowrap;
+}
+div.sensor-things-timeslider:hover span.sensor-things-timeslider-tooltip {
+    visibility: visible;
+}
+
 div.sensor-things-graph-options {
     padding: 0.25em;
     position: absolute;
