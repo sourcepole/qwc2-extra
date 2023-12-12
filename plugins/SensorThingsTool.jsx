@@ -22,6 +22,7 @@ import {
 import 'chartjs-adapter-dayjs-4';
 import {Line} from 'react-chartjs-2';
 import dayjs from 'dayjs';
+import FileSaver from 'file-saver';
 import {LayerRole, addLayerFeatures, removeLayer} from 'qwc2/actions/layers';
 import {changeSelectionState} from 'qwc2/actions/selection';
 import {setCurrentTask} from 'qwc2/actions/task';
@@ -503,6 +504,12 @@ class SensorThingsTool extends React.Component {
 
                         <div className="sensor-things-toolbar-spacer-small" />
 
+                        <button className="button" onClick={this.exportCSV} title={LocaleUtils.tr("sensorthingstool.exportCSV")}>
+                            <Icon icon="export" />
+                        </button>
+
+                        <div className="sensor-things-toolbar-spacer-small" />
+
                         <div>
                             <button className={"button" + (this.state.graphOptionsPopup ? " pressed" : "")} onClick={() => this.setState((state) => ({graphOptionsPopup: !state.graphOptionsPopup}))}>
                                 <Icon icon="cog" />
@@ -843,6 +850,40 @@ class SensorThingsTool extends React.Component {
                 }
             }
         }));
+    };
+    exportCSV = () => {
+        if (!this.state.sensorLocation) {
+            return;
+        }
+
+        let csvLines = [];
+        csvLines.push(["locationID", "locationName", "datastreamID", "datastreamName", "timestamp", "timestring", "value", "unit"]);
+        this.state.graph.datastreams.forEach((datastream) => {
+            if (datastream.observations) {
+                const datastreamInfo = this.state.datastreams[datastream.id];
+
+                // NOTE: wrap text values in double quotes for escaping
+                csvLines = csvLines.concat(datastream.observations.map((observation) => [
+                    this.state.sensorLocation.id,
+                    `"${this.state.sensorLocation.name.replace('"', '""')}"`,
+                    datastreamInfo.id,
+                    `"${datastreamInfo.name.replace('"', '""')}"`,
+                    // observation time as Unix timestamp in seconds
+                    observation.x / 1000,
+                    // observation time as ISO8601 string
+                    dayjs(observation.x).format(),
+                    observation.y,
+                    `"${datastreamInfo.unitOfMeasurement.symbol.replace('"', '""')}"`
+                ]));
+            }
+        });
+        if (csvLines.length < 2) {
+            // no observations present
+            return;
+        }
+
+        const csv = csvLines.map((csvLine) => csvLine.join(";")).join("\n");
+        FileSaver.saveAs(new Blob([csv], {type: "text/csv;charset=utf-8"}), "sensor_observations.csv");
     };
 }
 

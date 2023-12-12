@@ -30,6 +30,7 @@
     "sensorthingstool": {
       "datastreamLabel": "Datastream",
       "datastreamSelectNone": "none",
+      "exportCSV": "Export as CSV",
       "graphOptions": {
         "toggleGridLines": "Grid lines",
         "toggleSecondYAxis": "Second y-axis",

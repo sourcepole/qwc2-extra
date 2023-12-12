@@ -26,6 +26,7 @@
     "plotinfotool.loading",
     "sensorthingstool.datastreamLabel",
     "sensorthingstool.datastreamSelectNone",
+    "sensorthingstool.exportCSV",
     "sensorthingstool.graphOptions.toggleGridLines",
     "sensorthingstool.graphOptions.toggleSecondYAxis",
     "sensorthingstool.graphOptions.yAuto",
