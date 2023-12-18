@@ -31,6 +31,7 @@
       "datastreamLabel": "Datastream",
       "datastreamSelectNone": "none",
       "exportCSV": "Export as CSV",
+      "exportImage": "Export as image",
       "graphOptions": {
         "toggleGridLines": "Grid lines",
         "toggleSecondYAxis": "Second y-axis",

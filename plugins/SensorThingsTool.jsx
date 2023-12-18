@@ -10,6 +10,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import axios from 'axios';
+import {Buffer} from 'buffer';
 import {
     Chart as ChartJS,
     LinearScale,
@@ -184,6 +185,10 @@ class SensorThingsTool extends React.Component {
         // true if graph options are shown
         graphOptionsPopup: false
     };
+    constructor(props) {
+        super(props);
+        this.chartRef = null;
+    }
     componentDidUpdate(prevProps, prevState) {
         if (this.props.currentTask === 'SensorThingsTool' && prevProps.currentTask !== 'SensorThingsTool') {
             this.activated();
@@ -465,7 +470,7 @@ class SensorThingsTool extends React.Component {
                     ))}
                 </div>
                 <div className="sensor-things-graph">
-                    <Line data={data} options={options} />
+                    <Line data={data} options={options} ref={el => { this.chartRef = el; }} />
                 </div>
                 <div className="sensor-things-graph-controls">
                     {this.renderTimeSlider(fullDatastreamsPeriodBegin, fullDatastreamsPeriodEnd)}
@@ -506,6 +511,9 @@ class SensorThingsTool extends React.Component {
 
                         <button className="button" onClick={this.exportCSV} title={LocaleUtils.tr("sensorthingstool.exportCSV")}>
                             <Icon icon="export" />
+                        </button>
+                        <button className="button" onClick={this.exportImage} title={LocaleUtils.tr("sensorthingstool.exportImage")}>
+                            <Icon icon="rasterexport" />
                         </button>
 
                         <div className="sensor-things-toolbar-spacer-small" />
@@ -884,6 +892,20 @@ class SensorThingsTool extends React.Component {
 
         const csv = csvLines.map((csvLine) => csvLine.join(";")).join("\n");
         FileSaver.saveAs(new Blob([csv], {type: "text/csv;charset=utf-8"}), "sensor_observations.csv");
+    };
+    exportImage = () => {
+        if (!this.state.sensorLocation) {
+            return;
+        }
+
+        const imgBase64 = this.chartRef.toBase64Image('image/png');
+
+        // parse base64 string, e.g. "data:image/png;base64,abcd1234..."
+        const parts = imgBase64.split(',');
+        const imgData = new Buffer(parts[1], "base64");
+        const imgType = parts[0].split(':')[1].split(';')[0];
+
+        FileSaver.saveAs(new Blob([imgData], {type: imgType}), "sensor_observations.png");
     };
 }
 
