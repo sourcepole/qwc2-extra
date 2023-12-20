@@ -131,7 +131,8 @@ Plugin for querying observations from a SensorThings API server and displaying t
           },
           "windowSize": {
             "width": 800, "height": 500
-          }
+          },
+          "zoomFactor": 1.5
         }
       },
       // ...
@@ -147,6 +148,7 @@ Plugin for querying observations from a SensorThings API server and displaying t
 * `timeFormats` (optional, defaults: see above): Display formats for time units of time axis in graph (cf. [Day.js docs](https://day.js.org/docs/en/display/format))
   * `tooltip`: Display format for date and time in graph tooltips
 * `windowSize` (optional, default: 800x500): Inital window size
+* `zoomFactor` (optional, default: `1.5`): Zoom factor on time axis for zoom in/out buttons
 
 
 #### `appConfig.js`

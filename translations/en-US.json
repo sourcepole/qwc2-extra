@@ -48,6 +48,8 @@
         "week": "Week",
         "year": "Year"
       },
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
       "title": "SensorThings Info"
     },
     "appmenu": {

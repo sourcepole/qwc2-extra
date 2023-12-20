@@ -59,7 +59,8 @@ class SensorThingsTool extends React.Component {
         sensorThingsApiUrl: PropTypes.string,
         setCurrentTask: PropTypes.func,
         timeFormats: PropTypes.object,
-        windowSize: PropTypes.object
+        windowSize: PropTypes.object,
+        zoomFactor: PropTypes.number
     };
     static defaultProps = {
         queryTolerance: 16,
@@ -75,7 +76,8 @@ class SensorThingsTool extends React.Component {
             quarter: '[Q]Q - YYYY',
             year: 'YYYY'
         },
-        windowSize: {width: 800, height: 500}
+        windowSize: {width: 800, height: 500},
+        zoomFactor: 1.5
     };
     state = {
         /**
@@ -515,6 +517,15 @@ class SensorThingsTool extends React.Component {
 
                         <div className="sensor-things-toolbar-spacer-small" />
 
+                        <button className="button" onClick={this.zoomIn} title={LocaleUtils.tr("sensorthingstool.zoomIn")}>
+                            <Icon icon="zoomin" />
+                        </button>
+                        <button className="button" onClick={this.zoomOut} title={LocaleUtils.tr("sensorthingstool.zoomOut")}>
+                            <Icon icon="zoomout" />
+                        </button>
+
+                        <div className="sensor-things-toolbar-spacer-small" />
+
                         <button className="button" onClick={this.exportCSV} title={LocaleUtils.tr("sensorthingstool.exportCSV")}>
                             <Icon icon="export" />
                         </button>
@@ -841,6 +852,42 @@ class SensorThingsTool extends React.Component {
         const interval = this.state.graph.x.max - this.state.graph.x.min;
         const now = Date.now();
         this.updateGraphAxis('x', {min: now - interval, max: now});
+    };
+    zoomIn = () => {
+        // zoom in at middle of current interval
+        const interval = this.state.graph.x.max - this.state.graph.x.min;
+        const intervalDelta = interval * (1.0 - 1.0 / this.props.zoomFactor);
+        const periodBegin = this.state.graph.x.min + intervalDelta / 2.0;
+        const periodEnd = this.state.graph.x.max - intervalDelta / 2.0;
+        this.updateGraphAxis('x', {min: periodBegin, max: periodEnd});
+    };
+    zoomOut = () => {
+        // zoom out from middle of current interval
+        const interval = this.state.graph.x.max - this.state.graph.x.min;
+        const intervalDelta = interval * (this.props.zoomFactor - 1.0);
+        const periodBegin = this.state.graph.x.min - intervalDelta / 2.0;
+        const periodEnd = this.state.graph.x.max + intervalDelta / 2.0;
+        this.setState((state) => ({
+            graph: {
+                ...state.graph,
+                x: {
+                    ...state.graph.x,
+                    min: periodBegin,
+                    max: periodEnd
+                },
+                // NOTE: reset range of y-axes to auto
+                y: {
+                    ...state.graph.y,
+                    min: null,
+                    max: null
+                },
+                y2: {
+                    ...state.graph.y2,
+                    min: null,
+                    max: null
+                }
+            }
+        }));
     };
     // return timestamp with new date part
     // dateString = "<YYYY-MM-DD>"

@@ -39,7 +39,9 @@
     "sensorthingstool.intervalOptions.hour",
     "sensorthingstool.intervalOptions.month",
     "sensorthingstool.intervalOptions.week",
-    "sensorthingstool.intervalOptions.year"
+    "sensorthingstool.intervalOptions.year",
+    "sensorthingstool.zoomIn",
+    "sensorthingstool.zoomOut"
   ],
   "extra_strings": [
     "appmenu.items.PlotInfoTool",
