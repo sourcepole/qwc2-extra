@@ -20,6 +20,7 @@ import {
     Tooltip,
     TimeScale
 } from 'chart.js';
+import { getRelativePosition } from 'chart.js/helpers';
 import 'chartjs-adapter-dayjs-4';
 import {Line} from 'react-chartjs-2';
 import dayjs from 'dayjs';
@@ -188,6 +189,7 @@ class SensorThingsTool extends React.Component {
     constructor(props) {
         super(props);
         this.chartRef = null;
+        this.setupChartMouseZoom();
     }
     componentDidUpdate(prevProps, prevState) {
         if (this.props.currentTask === 'SensorThingsTool' && prevProps.currentTask !== 'SensorThingsTool') {
@@ -266,8 +268,12 @@ class SensorThingsTool extends React.Component {
             plugins: {
                 legend: {
                     position: 'top'
+                },
+                mouseZoomPlugin: {
+                    events: ['mousemove', 'mouseout', 'mousedown', 'mouseup', 'touchmove', 'touchstart', 'touchend']
                 }
             },
+            events: ['mousemove', 'mouseout', 'mousedown', 'mouseup', 'click', 'touchmove', 'touchstart', 'touchend'],
             scales: {
                 x: {
                     type: 'time',
@@ -906,6 +912,112 @@ class SensorThingsTool extends React.Component {
         const imgType = parts[0].split(':')[1].split(';')[0];
 
         FileSaver.saveAs(new Blob([imgData], {type: imgType}), "sensor_observations.png");
+    };
+    setupChartMouseZoom = () => {
+        const mouseZoomPlugin = {
+            id: 'mouseZoomPlugin',
+            beforeEvent(chart, args) {
+                const event = args.event;
+                if (event.type === 'mousedown') {
+                    // start drawing zoom rect
+                    const canvasPosition = getRelativePosition(event, chart);
+                    this.drawing = true;
+                    this.drawStart = {
+                        x: canvasPosition.x,
+                        y: canvasPosition.y
+                    };
+                    this.drawEnd = null;
+                } else if (event.type === 'mousemove') {
+                    if (this.drawing) {
+                        // update zoom rect while drawing
+                        const canvasPosition = getRelativePosition(event, chart);
+                        this.drawEnd = {
+                            x: canvasPosition.x,
+                            y: canvasPosition.y
+                        };
+                        chart.draw();
+                    }
+                } else if (event.type === 'mouseup') {
+                    if (this.drawing) {
+                        if (this.drawEnd === null) {
+                            // skip if no zoom rect yet
+                            this.drawing = false;
+                            return;
+                        }
+
+                        // zoom to rect after finishing drawing
+
+                        // calc axis ranges from rect
+                        const periodBegin = chart.scales.x.getValueForPixel(Math.min(this.drawStart.x, this.drawEnd.x));
+                        const periodEnd = chart.scales.x.getValueForPixel(Math.max(this.drawStart.x, this.drawEnd.x));
+                        const minY = chart.scales.y.getValueForPixel(Math.max(this.drawStart.y, this.drawEnd.y));
+                        const maxY = chart.scales.y.getValueForPixel(Math.min(this.drawStart.y, this.drawEnd.y));
+                        let minY2 = null;
+                        let maxY2 = null;
+                        if (this.component.state.graph.y2.enabled) {
+                            minY2 = chart.scales.yRight.getValueForPixel(Math.max(this.drawStart.y, this.drawEnd.y));
+                            maxY2 = chart.scales.yRight.getValueForPixel(Math.min(this.drawStart.y, this.drawEnd.y));
+                        }
+
+                        // clear zoom rect
+                        this.drawing = false;
+                        this.drawStart = null;
+                        this.drawEnd = null;
+                        chart.draw();
+
+                        // zoom to selected range
+                        this.component.setState((state) => ({
+                            graph: {
+                                ...state.graph,
+                                x: {
+                                    ...state.graph.x,
+                                    min: periodBegin,
+                                    max: periodEnd
+                                },
+                                y: {
+                                    ...state.graph.y,
+                                    min: minY,
+                                    max: maxY
+                                },
+                                y2: {
+                                    ...state.graph.y2,
+                                    min: minY2,
+                                    max: maxY2
+                                }
+                            }
+                        }));
+                    }
+                } else if (event.type === 'mouseout') {
+                    // abort drawing rect
+
+                    // clear zoom rect
+                    this.drawing = false;
+                    this.drawStart = null;
+                    this.drawEnd = null;
+                    chart.draw();
+                }
+            },
+            afterDraw(chart) {
+                if (!this.drawing || this.drawStart === null || this.drawEnd === null) {
+                    return;
+                }
+
+                // draw zoom rect
+                const {ctx} = chart;
+                ctx.save();
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = '#595959';
+                ctx.setLineDash([4, 4]);
+                ctx.lineWidth = 1;
+                ctx.strokeRect(this.drawStart.x, this.drawStart.y, this.drawEnd.x - this.drawStart.x, this.drawEnd.y - this.drawStart.y);
+                ctx.restore();
+            },
+            drawing: false,
+            drawStart: null,
+            drawEnd: null,
+            component: this
+        };
+        ChartJS.register(mouseZoomPlugin);
     };
 }
 
