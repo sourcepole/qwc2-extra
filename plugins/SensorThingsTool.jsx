@@ -397,65 +397,6 @@ class SensorThingsTool extends React.Component {
             {label: LocaleUtils.tr("sensorthingstool.intervalOptions.year"), interval: 31536000000} // 365 * 24 * 3600 * 1000 ms
         ];
 
-        const graphOptions = this.state.graphOptionsPopup ? (
-            <div className="sensor-things-graph-options">
-                <table>
-                    <tbody>
-                        <tr>
-                            <td><b>{LocaleUtils.tr("sensorthingstool.graphOptions.yAxis")}</b></td>
-                            {this.state.graph.y2.enabled ? (<td />) : null}
-                            <td>
-                                <label><input checked={this.state.graph.y2.enabled} onChange={(ev) => this.updateGraphAxis('y2', {enabled: ev.target.checked})} type="checkbox"  /> {LocaleUtils.tr("sensorthingstool.graphOptions.toggleSecondYAxis")}</label>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>{LocaleUtils.tr("sensorthingstool.graphOptions.yMax")}:</td>
-                            <td>
-                                <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y', {max: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y.max} />
-                                <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y', {max: null})}>
-                                    <Icon icon="clear" />
-                                </button>
-                            </td>
-                            {this.state.graph.y2.enabled ? (
-                                <td>
-                                    <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y2', {max: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y2.max} />
-                                    <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y2', {max: null})}>
-                                        <Icon icon="clear" />
-                                    </button>
-                                </td>
-                            ) : null}
-                        </tr>
-                        <tr>
-                            <td>{LocaleUtils.tr("sensorthingstool.graphOptions.yMin")}:</td>
-                            <td>
-                                <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y', {min: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y.min} />
-                                <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y', {min: null})}>
-                                    <Icon icon="clear" />
-                                </button>
-                            </td>
-                            {this.state.graph.y2.enabled ? (
-                                <td>
-                                    <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y2', {min: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y2.min} />
-                                    <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y2', {min: null})}>
-                                        <Icon icon="clear" />
-                                    </button>
-                                </td>
-                            ) : null}
-                        </tr>
-                        {this.state.graph.y2.enabled ? (
-                            <tr>
-                                <td />
-                                <td />
-                                <td>
-                                    <label><input checked={this.state.graph.y2.showGrid} onChange={(ev) => this.updateGraphAxis('y2', {showGrid: ev.target.checked})} type="checkbox" /> {LocaleUtils.tr("sensorthingstool.graphOptions.toggleGridLines")}</label>
-                                </td>
-                            </tr>
-                        ) : null}
-                    </tbody>
-                </table>
-            </div>
-        ) : null;
-
         return (
             <div className="sensor-things-dialog-body" role="body">
                 <div className="sensor-things-location">
@@ -539,7 +480,7 @@ class SensorThingsTool extends React.Component {
                             <button className={"button" + (this.state.graphOptionsPopup ? " pressed" : "")} onClick={() => this.setState((state) => ({graphOptionsPopup: !state.graphOptionsPopup}))}>
                                 <Icon icon="cog" />
                             </button>
-                            {graphOptions}
+                            {this.renderGraphOptions()}
                         </div>
 
                         <div className="sensor-things-toolbar-spacer" />
@@ -563,6 +504,70 @@ class SensorThingsTool extends React.Component {
                 <span className="sensor-things-timeslider-tooltip">
                     {dayjs(this.state.timeSliderValue).format(this.props.timeFormats.tooltip)}
                 </span>
+            </div>
+        );
+    };
+    renderGraphOptions = () => {
+        if (!this.state.graphOptionsPopup) {
+            return null;
+        }
+
+        return (
+            <div className="sensor-things-graph-options">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td><b>{LocaleUtils.tr("sensorthingstool.graphOptions.yAxis")}</b></td>
+                            {this.state.graph.y2.enabled ? (<td />) : null}
+                            <td>
+                                <label><input checked={this.state.graph.y2.enabled} onChange={(ev) => this.updateGraphAxis('y2', {enabled: ev.target.checked})} type="checkbox"  /> {LocaleUtils.tr("sensorthingstool.graphOptions.toggleSecondYAxis")}</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>{LocaleUtils.tr("sensorthingstool.graphOptions.yMax")}:</td>
+                            <td>
+                                <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y', {max: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y.max} />
+                                <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y', {max: null})}>
+                                    <Icon icon="clear" />
+                                </button>
+                            </td>
+                            {this.state.graph.y2.enabled ? (
+                                <td>
+                                    <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y2', {max: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y2.max} />
+                                    <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y2', {max: null})}>
+                                        <Icon icon="clear" />
+                                    </button>
+                                </td>
+                            ) : null}
+                        </tr>
+                        <tr>
+                            <td>{LocaleUtils.tr("sensorthingstool.graphOptions.yMin")}:</td>
+                            <td>
+                                <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y', {min: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y.min} />
+                                <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y', {min: null})}>
+                                    <Icon icon="clear" />
+                                </button>
+                            </td>
+                            {this.state.graph.y2.enabled ? (
+                                <td>
+                                    <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y2', {min: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y2.min} />
+                                    <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y2', {min: null})}>
+                                        <Icon icon="clear" />
+                                    </button>
+                                </td>
+                            ) : null}
+                        </tr>
+                        {this.state.graph.y2.enabled ? (
+                            <tr>
+                                <td />
+                                <td />
+                                <td>
+                                    <label><input checked={this.state.graph.y2.showGrid} onChange={(ev) => this.updateGraphAxis('y2', {showGrid: ev.target.checked})} type="checkbox" /> {LocaleUtils.tr("sensorthingstool.graphOptions.toggleGridLines")}</label>
+                                </td>
+                            </tr>
+                        ) : null}
+                    </tbody>
+                </table>
             </div>
         );
     };
