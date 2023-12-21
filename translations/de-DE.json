@@ -1,0 +1,73 @@
+{
+  "locale": "de-DE",
+  "messages": {
+    "oereb": {
+      "concernedThemes": "Betroffene Themen",
+      "fundationdatastate": "Daten der amtlichen Vermessung. Stand der amtlichen Vermessung:",
+      "fundations": "Grundlagedaten",
+      "generalInformation": "Allgemeine und rechtliche Informationen",
+      "generalinfo": "Allgemeine Informationen",
+      "hidefulllegend": "Vollständige Legende ausblenden",
+      "hints": "Weitere Informationen und Hinweise",
+      "legalbasis": "Gesetzliche Grundlagen",
+      "notConcernedThemes": "Nicht betroffene Themen",
+      "nrpoints": "Punkt(e)",
+      "perc": "Anteil in %",
+      "regulations": "Rechtsvorschriften",
+      "responsibleauthority": "Katasterverantwortliche Stelle",
+      "responsibleoffice": "Zuständige Stelle",
+      "share": "Anteil",
+      "showfulllegend": "Vollständige Legende einblenden",
+      "themeWithoutData": "Nicht verfügbare Themen",
+      "type": "Typ",
+      "title": "Öffentlich-rechtliche Eigentumsbeschränkungen",
+      "failed": "Fehler beim Laden des OEREB Auszug"
+    },
+    "plotinfotool": {
+      "failed": "Datenabfrage gescheitert",
+      "loading": "Daten werden geladen..."
+    },
+    "sensorthingstool": {
+      "datastreamLabel": "Datastream",
+      "datastreamSelectNone": "kein",
+      "exportCSV": "Exportieren als CSV",
+      "exportImage": "Exportieren als Bild",
+      "graphOptions": {
+        "title": "Einstellungen",
+        "toggleGridLines": "Gitterlinien",
+        "toggleSecondYAxis": "Zweite Y-Achse",
+        "yAuto": "auto",
+        "yAxis": "Y-Achse",
+        "yMax": "Obergrenze",
+        "yMin": "Untergrenze"
+      },
+      "intervalOptions": {
+        "custom": "Benutzerdefiniert",
+        "day": "Tag",
+        "hour": "Stunde",
+        "month": "Monat",
+        "week": "Woche",
+        "year": "Jahr"
+      },
+      "selectInterval": "Zeitspanne auswählen",
+      "setEndToNow": "Endzeitpunkt auf jetzt setzen",
+      "setPeriodAfterBegin": "Zeitabschnitt auf Zeitspanne nach Startzeitpunkt setzen",
+      "setPeriodBeforeEnd": "Zeitabschnitt auf Zeitspanne vor Endzeitpunkt setzen",
+      "showNextPeriod": "Nächsten Zeitabschnitt anzeigen",
+      "showPrevPeriod": "Vorherigen Zeitabschnitt anzeigen",
+      "zoomIn": "Vergrößern",
+      "zoomOut": "Verkleinern",
+      "title": "SensorThings Info"
+    },
+    "appmenu": {
+      "items": {
+        "PlotInfoTool": "Grundstücksinformation",
+        "SensorThingsTool": "SensorThings Abfrage"
+      }
+    },
+    "plotdescr": {
+      "title": "Grundstücksbeschrieb",
+      "requestPdf": "Grundbuchplan (PDF) erstellen"
+    }
+  }
+}
