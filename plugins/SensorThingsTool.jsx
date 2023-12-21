@@ -30,6 +30,7 @@ import {changeSelectionState} from 'qwc2/actions/selection';
 import {setCurrentTask} from 'qwc2/actions/task';
 import Icon from 'qwc2/components/Icon';
 import ResizeableWindow from 'qwc2/components/ResizeableWindow';
+import Spinner from 'qwc2/components/Spinner';
 import Input from 'qwc2/components/widgets/Input';
 import NumberInput from 'qwc2/components/widgets/NumberInput';
 import CoordinatesUtils from 'qwc2/utils/CoordinatesUtils';
@@ -404,7 +405,7 @@ class SensorThingsTool extends React.Component {
                         <b>{this.state.sensorLocation.name}</b> {this.state.sensorLocation.description}
                     </div>
                     {this.state.graph.datastreams.map((graphDatastreamState, datastreamIndex) => (
-                        <div key={"sensor-things-select-datastream-" + datastreamIndex}>
+                        <div className="sensor-things-location-datastream" key={"sensor-things-select-datastream-" + datastreamIndex}>
                             {LocaleUtils.tr("sensorthingstool.datastreamLabel")} {datastreamIndex + 1}:&nbsp;
                             <select onChange={(ev) => this.updateDatastream(datastreamIndex, parseInt(ev.target.value, 10) || "")} value={graphDatastreamState.id}>
                                 <option key={"sensor-things-select-datastream-" + datastreamIndex + "-none"} value="">{LocaleUtils.tr("sensorthingstool.datastreamSelectNone")}</option>
@@ -415,6 +416,7 @@ class SensorThingsTool extends React.Component {
                                     );
                                 })}
                             </select>
+                            {this.state.graph.datastreams[datastreamIndex].loading ? (<Spinner />) : null}
                         </div>
                     ))}
                 </div>

@@ -7,6 +7,19 @@ div.resizeable-window-body-nonscrollable div.sensor-things-dialog-body {
     height: 100%;
 }
 
+div.sensor-things-location-datastream {
+    display: flex;
+    align-items: center;
+}
+
+div.sensor-things-location-datastream div.spinner {
+    width: 1.5em;
+    height: 1.5em;
+    margin-left: 0.25em;
+    display: inline-block;
+    flex: 0 0 auto;
+}
+
 div.sensor-things-graph {
     height: 100%;
 }
