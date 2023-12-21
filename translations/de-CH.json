@@ -33,6 +33,7 @@
       "exportCSV": "Exportieren als CSV",
       "exportImage": "Exportieren als Bild",
       "graphOptions": {
+        "title": "Einstellungen",
         "toggleGridLines": "Gitterlinien",
         "toggleSecondYAxis": "Zweite Y-Achse",
         "yAuto": "auto",
@@ -48,6 +49,12 @@
         "week": "Woche",
         "year": "Jahr"
       },
+      "selectInterval": "Zeitspanne auswählen",
+      "setEndToNow": "Endzeitpunkt auf jetzt setzen",
+      "setPeriodAfterBegin": "Zeitabschnitt auf Zeitspanne nach Startzeitpunkt setzen",
+      "setPeriodBeforeEnd": "Zeitabschnitt auf Zeitspanne vor Endzeitpunkt setzen",
+      "showNextPeriod": "Nächsten Zeitabschnitt anzeigen",
+      "showPrevPeriod": "Vorherigen Zeitabschnitt anzeigen",
       "zoomIn": "Vergrössern",
       "zoomOut": "Verkleinern",
       "title": "SensorThings Info"

@@ -430,29 +430,29 @@ class SensorThingsTool extends React.Component {
 
                         <div className="sensor-things-toolbar-spacer" />
 
-                        <button className="button" onClick={this.updatePeriodIntervalAfterBegin}>
+                        <button className="button" onClick={this.updatePeriodIntervalAfterBegin} title={LocaleUtils.tr("sensorthingstool.setPeriodAfterBegin")}>
                             <Icon icon="after" />
                         </button>
-                        <select onChange={(ev) => this.setState({selectedInterval: parseInt(ev.target.value, 10)})} value={this.state.selectedInterval}>
+                        <select onChange={(ev) => this.setState({selectedInterval: parseInt(ev.target.value, 10)})} title={LocaleUtils.tr("sensorthingstool.selectInterval")} value={this.state.selectedInterval}>
                             {intervalOptions.map((interval, idx) => {
                                 return (
                                     <option key={"sensor-things-select-interval-" + idx} value={interval.interval}>{interval.label}</option>
                                 );
                             })}
                         </select>
-                        <button className="button" onClick={this.updatePeriodIntervalBeforeEnd}>
+                        <button className="button" onClick={this.updatePeriodIntervalBeforeEnd} title={LocaleUtils.tr("sensorthingstool.setPeriodBeforeEnd")}>
                             <Icon icon="before" />
                         </button>
 
                         <div className="sensor-things-toolbar-spacer-small" />
 
-                        <button className="button" onClick={this.updatePeriodPrevInterval}>
+                        <button className="button" onClick={this.updatePeriodPrevInterval} title={LocaleUtils.tr("sensorthingstool.showPrevPeriod")}>
                             <Icon icon="nav-left" />
                         </button>
-                        <button className="button" onClick={this.updatePeriodNextInterval}>
+                        <button className="button" onClick={this.updatePeriodNextInterval} title={LocaleUtils.tr("sensorthingstool.showNextPeriod")}>
                             <Icon icon="nav-right" />
                         </button>
-                        <button className="button" onClick={this.updatePeriodNow}>
+                        <button className="button" onClick={this.updatePeriodNow} title={LocaleUtils.tr("sensorthingstool.setEndToNow")}>
                             <Icon icon="today" />
                         </button>
 
@@ -477,7 +477,7 @@ class SensorThingsTool extends React.Component {
                         <div className="sensor-things-toolbar-spacer-small" />
 
                         <div>
-                            <button className={"button" + (this.state.graphOptionsPopup ? " pressed" : "")} onClick={() => this.setState((state) => ({graphOptionsPopup: !state.graphOptionsPopup}))}>
+                            <button className={"button" + (this.state.graphOptionsPopup ? " pressed" : "")} onClick={() => this.setState((state) => ({graphOptionsPopup: !state.graphOptionsPopup}))} title={LocaleUtils.tr("sensorthingstool.graphOptions.title")}>
                                 <Icon icon="cog" />
                             </button>
                             {this.renderGraphOptions()}

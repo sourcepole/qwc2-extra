@@ -33,6 +33,7 @@
       "exportCSV": "Export as CSV",
       "exportImage": "Export as image",
       "graphOptions": {
+        "title": "Settings",
         "toggleGridLines": "Grid lines",
         "toggleSecondYAxis": "Second y-axis",
         "yAuto": "auto",
@@ -48,6 +49,12 @@
         "week": "Week",
         "year": "Year"
       },
+      "selectInterval": "Select interval",
+      "setEndToNow": "Set end time to now",
+      "setPeriodAfterBegin": "Set period to interval after start time",
+      "setPeriodBeforeEnd": "Set period to interval before end time",
+      "showNextPeriod": "Show next period",
+      "showPrevPeriod": "Show previous period",
       "zoomIn": "Zoom in",
       "zoomOut": "Zoom out",
       "title": "SensorThings Info"
