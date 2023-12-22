@@ -61,7 +61,8 @@ class SensorThingsTool extends React.Component {
         setCurrentTask: PropTypes.func,
         timeFormats: PropTypes.object,
         windowSize: PropTypes.object,
-        zoomFactor: PropTypes.number
+        zoomFactor: PropTypes.number,
+        zoomRectMinSize: PropTypes.object
     };
     static defaultProps = {
         queryTolerance: 16,
@@ -78,7 +79,8 @@ class SensorThingsTool extends React.Component {
             year: 'YYYY'
         },
         windowSize: {width: 800, height: 500},
-        zoomFactor: 1.5
+        zoomFactor: 1.5,
+        zoomRectMinSize: {width: 8, height: 8}
     };
     state = {
         /**
@@ -270,7 +272,8 @@ class SensorThingsTool extends React.Component {
             parsing: false,
             plugins: {
                 legend: {
-                    position: 'top'
+                    position: 'top',
+                    events: ['mousemove', 'mouseout', 'click', 'touchstart', 'touchmove']
                 },
                 mouseZoomPlugin: {
                     events: ['mousemove', 'mouseout', 'mousedown', 'mouseup', 'touchmove', 'touchstart', 'touchend']
@@ -989,10 +992,15 @@ class SensorThingsTool extends React.Component {
                     if (this.drawing) {
                         // update zoom rect while drawing
                         const canvasPosition = getRelativePosition(event, chart);
-                        this.drawEnd = {
-                            x: canvasPosition.x,
-                            y: canvasPosition.y
-                        };
+                        if (Math.abs(canvasPosition.x - this.drawStart.x) > this.component.props.zoomRectMinSize.width && Math.abs(canvasPosition.y - this.drawStart.y) > this.component.props.zoomRectMinSize.height) {
+                            this.drawEnd = {
+                                x: canvasPosition.x,
+                                y: canvasPosition.y
+                            };
+                        } else {
+                            // skip if zoom rect is too small
+                            this.drawEnd = null;
+                        }
                         chart.draw();
                     }
                 } else if (event.type === 'mouseup') {
