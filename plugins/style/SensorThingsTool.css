@@ -24,6 +24,7 @@ div.sensor-things-location-datastream div.spinner {
 
 div.sensor-things-graph {
     height: 100%;
+    overflow: hidden;
 }
 
 div.sensor-things-toolbar {
