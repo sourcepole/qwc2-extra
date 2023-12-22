@@ -131,13 +131,15 @@ class SensorThingsTool extends React.Component {
          *      },
          *      y: {                                                // y-axis config
          *          min: <graph min value>,                         // null if auto
-         *          max: <graph max value>                          // null if auto
+         *          max: <graph max value>,                         // null if auto
+         *          reverse: <whether to reverse direction of y-axis>
          *      },
          *      y2: {                                               // second y-axis config
          *          enabled: <whether second y-axis is shown>,
          *          min: <graph min value>,                         // null if auto
-         *          max: <graph max value>                          // null if auto
-         *          showGrid: <whether grid lines for second y-axis are shown>,
+         *          max: <graph max value>,                         // null if auto
+         *          reverse: <whether to reverse direction of second y-axis>,
+         *          showGrid: <whether grid lines for second y-axis are shown>
          *      },
          *      datastreams: [
          *          {
@@ -161,12 +163,14 @@ class SensorThingsTool extends React.Component {
             },
             y: {
                 min: null,
-                max: null
+                max: null,
+                reverse: false
             },
             y2: {
                 enabled: false,
                 min: null,
                 max: null,
+                reverse: false,
                 showGrid: true
             },
             datastreams: [
@@ -293,7 +297,8 @@ class SensorThingsTool extends React.Component {
                 y: {
                     type: 'linear',
                     min: this.state.graph.y.min,
-                    max: this.state.graph.y.max
+                    max: this.state.graph.y.max,
+                    reverse: this.state.graph.y.reverse
                 }
             }
         };
@@ -369,6 +374,7 @@ class SensorThingsTool extends React.Component {
                 display: 'auto',
                 min: this.state.graph.y2.min,
                 max: this.state.graph.y2.max,
+                reverse: this.state.graph.y2.reverse,
                 grid: {
                     drawOnChartArea: this.state.graph.y2.showGrid
                 },
@@ -563,6 +569,17 @@ class SensorThingsTool extends React.Component {
                                     <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y2', {min: null})}>
                                         <Icon icon="clear" />
                                     </button>
+                                </td>
+                            ) : null}
+                        </tr>
+                        <tr>
+                            <td />
+                            <td>
+                                <label><input checked={this.state.graph.y.reverse} onChange={(ev) => this.updateGraphAxis('y', {reverse: ev.target.checked})} type="checkbox" /> {LocaleUtils.tr("sensorthingstool.graphOptions.reverseAxis")}</label>
+                            </td>
+                            {this.state.graph.y2.enabled ? (
+                                <td>
+                                    <label><input checked={this.state.graph.y2.reverse} onChange={(ev) => this.updateGraphAxis('y2', {reverse: ev.target.checked})} type="checkbox" /> {LocaleUtils.tr("sensorthingstool.graphOptions.reverseAxis")}</label>
                                 </td>
                             ) : null}
                         </tr>

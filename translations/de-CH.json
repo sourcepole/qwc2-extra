@@ -33,6 +33,7 @@
       "exportCSV": "Exportieren als CSV",
       "exportImage": "Exportieren als Bild",
       "graphOptions": {
+        "reverseAxis": "Achse umkehren",
         "title": "Einstellungen",
         "toggleGridLines": "Gitterlinien",
         "toggleSecondYAxis": "Zweite Y-Achse",

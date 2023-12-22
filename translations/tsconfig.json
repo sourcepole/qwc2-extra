@@ -1,6 +1,7 @@
 {
   "languages": [
     "de-CH",
+    "de-DE",
     "en-US"
   ],
   "strings": [
@@ -28,6 +29,7 @@
     "sensorthingstool.datastreamSelectNone",
     "sensorthingstool.exportCSV",
     "sensorthingstool.exportImage",
+    "sensorthingstool.graphOptions.reverseAxis",
     "sensorthingstool.graphOptions.title",
     "sensorthingstool.graphOptions.toggleGridLines",
     "sensorthingstool.graphOptions.toggleSecondYAxis",
