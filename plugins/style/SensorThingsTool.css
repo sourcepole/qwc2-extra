@@ -11,7 +11,9 @@ div.sensor-things-location-datastream {
     display: flex;
     align-items: center;
 }
-
+div.sensor-things-location-datastream select:focus {
+    z-index: 1;
+}
 div.sensor-things-location-datastream div.spinner {
     width: 1.5em;
     height: 1.5em;
@@ -32,6 +34,9 @@ div.sensor-things-toolbar-spacer {
 }
 div.sensor-things-toolbar-spacer-small {
     width: 0.5em;
+}
+div.sensor-things-toolbar input:focus, div.sensor-things-toolbar select:focus {
+    z-index: 1;
 }
 
 div.sensor-things-timeslider {
