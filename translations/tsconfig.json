@@ -33,6 +33,8 @@
     "sensorthingstool.graphOptions.title",
     "sensorthingstool.graphOptions.toggleGridLines",
     "sensorthingstool.graphOptions.toggleSecondYAxis",
+    "sensorthingstool.graphOptions.xAxis",
+    "sensorthingstool.graphOptions.xAxisAtTop",
     "sensorthingstool.graphOptions.yAuto",
     "sensorthingstool.graphOptions.yAxis",
     "sensorthingstool.graphOptions.yMax",

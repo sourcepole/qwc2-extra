@@ -37,6 +37,8 @@
         "title": "Einstellungen",
         "toggleGridLines": "Gitterlinien",
         "toggleSecondYAxis": "Zweite Y-Achse",
+        "xAxis": "X-Achse",
+        "xAxisAtTop": "Oben platzieren",
         "yAuto": "auto",
         "yAxis": "Y-Achse",
         "yMax": "Obergrenze",

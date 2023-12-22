@@ -37,6 +37,8 @@
         "title": "Settings",
         "toggleGridLines": "Grid lines",
         "toggleSecondYAxis": "Second y-axis",
+        "xAxis": "X-axis",
+        "xAxisAtTop": "Position at the top",
         "yAuto": "auto",
         "yAxis": "Y-axis",
         "yMax": "Upper limit",

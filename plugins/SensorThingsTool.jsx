@@ -127,7 +127,8 @@ class SensorThingsTool extends React.Component {
          *  graph = {
          *      x: {                                                // x-axis config
          *          min: <graph period start as Unix timestamp>,    // null if none
-         *          max: <graph period end as Unix timestamp>       // null if none
+         *          max: <graph period end as Unix timestamp>,      // null if none
+         *          positionAtTop: <whether to position the x-axis at the top or bottom>
          *      },
          *      y: {                                                // y-axis config
          *          min: <graph min value>,                         // null if auto
@@ -159,7 +160,8 @@ class SensorThingsTool extends React.Component {
         graph: {
             x: {
                 min: null, // Unix timestamp
-                max: null // Unix timestamp
+                max: null, // Unix timestamp
+                positionAtTop: false
             },
             y: {
                 min: null,
@@ -289,6 +291,7 @@ class SensorThingsTool extends React.Component {
                     type: 'time',
                     min: this.state.graph.x.min,
                     max: this.state.graph.x.max,
+                    position: this.state.graph.x.positionAtTop ? 'top' : 'bottom',
                     time: {
                         tooltipFormat: this.props.timeFormats.tooltip,
                         displayFormats: this.props.timeFormats
@@ -531,6 +534,13 @@ class SensorThingsTool extends React.Component {
             <div className="sensor-things-graph-options">
                 <table>
                     <tbody>
+                        <tr>
+                            <td><b>{LocaleUtils.tr("sensorthingstool.graphOptions.xAxis")}</b></td>
+                            <td colspan={this.state.graph.y2.enabled ? 2 : 1}>
+                                <label><input checked={this.state.graph.x.positionAtTop} onChange={(ev) => this.updateGraphAxis('x', {positionAtTop: ev.target.checked})} type="checkbox" /> {LocaleUtils.tr("sensorthingstool.graphOptions.xAxisAtTop")}</label>
+                            </td>
+                        </tr>
+
                         <tr>
                             <td><b>{LocaleUtils.tr("sensorthingstool.graphOptions.yAxis")}</b></td>
                             {this.state.graph.y2.enabled ? (<td />) : null}
