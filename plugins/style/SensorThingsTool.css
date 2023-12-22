@@ -7,6 +7,22 @@ div.resizeable-window-body-nonscrollable div.sensor-things-dialog-body {
     height: 100%;
 }
 
+div.sensor-things-header {
+    display: flex;
+}
+div.sensor-things-header div.sensor-things-location-name {
+    flex: 0 0 auto;
+    padding-right: 0.5em;
+    font-weight: bold;
+}
+div.sensor-things-header div.sensor-things-location-desc {
+    flex: 1 1 auto;
+    padding-right: 0.5em;
+}
+div.sensor-things-header div.sensor-things-toolbar {
+    flex: 0 0 auto;
+}
+
 div.sensor-things-location-datastream {
     display: flex;
     align-items: center;
@@ -69,7 +85,7 @@ div.sensor-things-timeslider:hover span.sensor-things-timeslider-tooltip {
 div.sensor-things-graph-options {
     padding: 0.25em;
     position: absolute;
-    bottom: 30px;
+    right: 0.25em;
     border: 1px solid var(--border-color);
     background-color: var(--container-bg-color);
     box-shadow: 0px 0px 5px rgba(136, 136, 136, 1);

@@ -401,8 +401,30 @@ class SensorThingsTool extends React.Component {
         return (
             <div className="sensor-things-dialog-body" role="body">
                 <div className="sensor-things-location">
-                    <div className="sensor-things-location-info">
-                        <b>{this.state.sensorLocation.name}</b> {this.state.sensorLocation.description}
+                    <div className="sensor-things-header">
+                        <div className="sensor-things-location-name">
+                            {this.state.sensorLocation.name}
+                        </div>
+                        <div className="sensor-things-location-desc">
+                            {this.state.sensorLocation.description}
+                        </div>
+                        <div className="sensor-things-toolbar">
+                            <button className="button" onClick={this.exportCSV} title={LocaleUtils.tr("sensorthingstool.exportCSV")}>
+                                <Icon icon="export" />
+                            </button>
+                            <button className="button" onClick={this.exportImage} title={LocaleUtils.tr("sensorthingstool.exportImage")}>
+                                <Icon icon="rasterexport" />
+                            </button>
+
+                            <div className="sensor-things-toolbar-spacer-small" />
+
+                            <div>
+                                <button className={"button" + (this.state.graphOptionsPopup ? " pressed" : "")} onClick={() => this.setState((state) => ({graphOptionsPopup: !state.graphOptionsPopup}))} title={LocaleUtils.tr("sensorthingstool.graphOptions.title")}>
+                                    <Icon icon="cog" />
+                                </button>
+                                {this.renderGraphOptions()}
+                            </div>
+                        </div>
                     </div>
                     {this.state.graph.datastreams.map((graphDatastreamState, datastreamIndex) => (
                         <div className="sensor-things-location-datastream" key={"sensor-things-select-datastream-" + datastreamIndex}>
@@ -466,24 +488,6 @@ class SensorThingsTool extends React.Component {
                         <button className="button" onClick={this.zoomOut} title={LocaleUtils.tr("sensorthingstool.zoomOut")}>
                             <Icon icon="zoomout" />
                         </button>
-
-                        <div className="sensor-things-toolbar-spacer-small" />
-
-                        <button className="button" onClick={this.exportCSV} title={LocaleUtils.tr("sensorthingstool.exportCSV")}>
-                            <Icon icon="export" />
-                        </button>
-                        <button className="button" onClick={this.exportImage} title={LocaleUtils.tr("sensorthingstool.exportImage")}>
-                            <Icon icon="rasterexport" />
-                        </button>
-
-                        <div className="sensor-things-toolbar-spacer-small" />
-
-                        <div>
-                            <button className={"button" + (this.state.graphOptionsPopup ? " pressed" : "")} onClick={() => this.setState((state) => ({graphOptionsPopup: !state.graphOptionsPopup}))} title={LocaleUtils.tr("sensorthingstool.graphOptions.title")}>
-                                <Icon icon="cog" />
-                            </button>
-                            {this.renderGraphOptions()}
-                        </div>
 
                         <div className="sensor-things-toolbar-spacer" />
 
