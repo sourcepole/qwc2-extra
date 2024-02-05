@@ -34,6 +34,9 @@
       "exportImage": "Export as image",
       "graphOptions": {
         "reverseAxis": "Reverse axis",
+        "threshold": "Threshold",
+        "thresholdLabel": "Label",
+        "thresholdValue": "Value",
         "title": "Settings",
         "toggleGridLines": "Grid lines",
         "toggleSecondYAxis": "Second y-axis",

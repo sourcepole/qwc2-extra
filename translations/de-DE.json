@@ -34,6 +34,9 @@
       "exportImage": "Exportieren als Bild",
       "graphOptions": {
         "reverseAxis": "Achse umkehren",
+        "threshold": "Grenzwert",
+        "thresholdLabel": "Beschriftung",
+        "thresholdValue": "Grenzwert",
         "title": "Einstellungen",
         "toggleGridLines": "Gitterlinien",
         "toggleSecondYAxis": "Zweite Y-Achse",

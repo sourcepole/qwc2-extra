@@ -221,7 +221,18 @@ class SensorThingsTool extends React.Component {
         // selected interval preset in ms (-1 if not set)
         selectedInterval: -1,
         // true if graph options are shown
-        graphOptionsPopup: false
+        graphOptionsPopup: false,
+        // custom threshold config from graph options
+        customThresholds: {
+            y: {
+                label: "",
+                value: null
+            },
+            y2: {
+                label: "",
+                value: null
+            }
+        }
     };
     constructor(props) {
         super(props);
@@ -444,6 +455,12 @@ class SensorThingsTool extends React.Component {
                 annotationsOptions['yRight' + idx] = this.optionsForThresholdLine('yRight', threshold.label, threshold.value, threshold.color);
             });
         }
+        if (this.state.customThresholds.y.value !== null) {
+            annotationsOptions.yCustom = this.optionsForThresholdLine('y', this.state.customThresholds.y.label, this.state.customThresholds.y.value, [0, 0, 0]);
+        }
+        if (this.state.graph.y2.enabled && this.state.customThresholds.y2.value !== null) {
+            annotationsOptions.yRightCustom = this.optionsForThresholdLine('yRight', this.state.customThresholds.y2.label, this.state.customThresholds.y2.value, [89, 89, 89]);
+        }
 
         const intervalOptions = [
             {label: LocaleUtils.tr("sensorthingstool.intervalOptions.custom"), interval: -1}, // custom
@@ -562,8 +579,11 @@ class SensorThingsTool extends React.Component {
             value: thresholdValue,
             borderColor: `rgba(${color.join(',')},0.8)`,
             borderWidth: 2,
-            drawTime: 'beforeDatasetsDraw',
-            label: {
+            drawTime: 'beforeDatasetsDraw'
+        };
+        if (label) {
+            // add threshold label
+            annotationOptions.label = {
                 content: label,
                 backgroundColor: 'transparent',
                 color: '#666666',
@@ -572,73 +592,74 @@ class SensorThingsTool extends React.Component {
                 font: {
                     weight: 'normal'
                 }
+            };
+
+            if (axisID === 'x') {
+                // vertical threshold label for x-axis
+                annotationOptions.label = {
+                    ...annotationOptions.label,
+                    position: 'end',
+                    rotation: -90,
+                    xAdjust: (context, opts) => {
+                        // get pixel distance to left and right borders of graph area
+                        const pixelPos = context.chart.scales.x.getPixelForValue(opts.value);
+                        const diffLeft = pixelPos - context.chart.chartArea.left;
+                        const diffRight = context.chart.chartArea.right - pixelPos;
+
+                        if (diffLeft < 0 || diffRight < 0) {
+                            // threshold value is outside visible area
+                            return 0;
+                        }
+
+                        // adjust offset to position the label to the side of the threshold line
+                        // place left of line
+                        let offset = -7;
+                        if (diffLeft < 9) {
+                            // adjust offset to place right of line
+                            offset = 3 + diffLeft * 0.5;
+                        } else if (diffLeft < 16) {
+                            // place right of line
+                            offset = 11;
+                        } else if (diffRight < 11) {
+                            // adjust offset to place left of line
+                            offset = -diffRight * 0.5;
+                        }
+                        return offset;
+                    }
+                };
+            } else {
+                // horizontal threshold label for y-axis
+                annotationOptions.label = {
+                    ...annotationOptions.label,
+                    position: (axisID === 'yRight') ? 'end' : 'start',
+                    yAdjust: (context, opts) => {
+                        // get pixel distance to top and bottom borders of graph area
+                        const pixelPos = context.chart.scales[opts.scaleID].getPixelForValue(opts.value);
+                        const diffTop = pixelPos - context.chart.chartArea.top;
+                        const diffBottom = context.chart.chartArea.bottom - pixelPos;
+
+                        if (diffTop < 0 || diffBottom < 0) {
+                            // threshold value is outside visible area
+                            return 0;
+                        }
+
+                        // adjust offset to position the label above or below the threshold line
+                        // place above line
+                        let offset = -7;
+                        if (diffTop < 9) {
+                            // adjust offset to place below line
+                            offset = 3 + diffTop * 0.5;
+                        } else if (diffTop < 16) {
+                            // place below line
+                            offset = 11;
+                        } else if (diffBottom < 11) {
+                            // adjust offset to place above line
+                            offset = -diffBottom * 0.5;
+                        }
+                        return offset;
+                    }
+                };
             }
-        };
-        if (axisID === 'x') {
-            // vertical threshold line for x-axis
-            annotationOptions.label = {
-                ...annotationOptions.label,
-                position: 'end',
-                rotation: -90,
-                xAdjust: (context, opts) => {
-                    // get pixel distance to left and right borders of graph area
-                    const pixelPos = context.chart.scales.x.getPixelForValue(opts.value);
-                    const diffLeft = pixelPos - context.chart.chartArea.left;
-                    const diffRight = context.chart.chartArea.right - pixelPos;
-
-                    if (diffLeft < 0 || diffRight < 0) {
-                        // threshold value is outside visible area
-                        return 0;
-                    }
-
-                    // adjust offset to position the label to the side of the threshold line
-                    // place left of line
-                    let offset = -7;
-                    if (diffLeft < 9) {
-                        // adjust offset to place right of line
-                        offset = 3 + diffLeft * 0.5;
-                    } else if (diffLeft < 16) {
-                        // place right of line
-                        offset = 11;
-                    } else if (diffRight < 11) {
-                        // adjust offset to place left of line
-                        offset = -diffRight * 0.5;
-                    }
-                    return offset;
-                }
-            };
-        } else {
-            // horizontal threshold line for y-axis
-            annotationOptions.label = {
-                ...annotationOptions.label,
-                position: (axisID === 'yRight') ? 'end' : 'start',
-                yAdjust: (context, opts) => {
-                    // get pixel distance to top and bottom borders of graph area
-                    const pixelPos = context.chart.scales[opts.scaleID].getPixelForValue(opts.value);
-                    const diffTop = pixelPos - context.chart.chartArea.top;
-                    const diffBottom = context.chart.chartArea.bottom - pixelPos;
-
-                    if (diffTop < 0 || diffBottom < 0) {
-                        // threshold value is outside visible area
-                        return 0;
-                    }
-
-                    // adjust offset to position the label above or below the threshold line
-                    // place above line
-                    let offset = -7;
-                    if (diffTop < 9) {
-                        // adjust offset to place below line
-                        offset = 3 + diffTop * 0.5;
-                    } else if (diffTop < 16) {
-                        // place below line
-                        offset = 11;
-                    } else if (diffBottom < 11) {
-                        // adjust offset to place above line
-                        offset = -diffBottom * 0.5;
-                    }
-                    return offset;
-                }
-            };
         }
         return annotationOptions;
     };
@@ -664,78 +685,119 @@ class SensorThingsTool extends React.Component {
 
         return (
             <div className="sensor-things-graph-options">
-                <table>
-                    <tbody>
-                        <tr>
-                            <td><b>{LocaleUtils.tr("sensorthingstool.graphOptions.xAxis")}</b></td>
-                            <td colspan={this.state.graph.y2.enabled ? 2 : 1}>
-                                <label><input checked={this.state.graph.x.positionAtTop} onChange={(ev) => this.updateGraphAxis('x', {positionAtTop: ev.target.checked})} type="checkbox" /> {LocaleUtils.tr("sensorthingstool.graphOptions.xAxisAtTop")}</label>
-                            </td>
-                        </tr>
+                <div className="sensor-things-graph-options-group">
+                    <div className="sensor-things-graph-options-title">{LocaleUtils.tr("sensorthingstool.graphOptions.xAxis")}</div>
+                    <div className="sensor-things-graph-options-content">
+                        <label><input checked={this.state.graph.x.positionAtTop} onChange={(ev) => this.updateGraphAxis('x', {positionAtTop: ev.target.checked})} type="checkbox" /> {LocaleUtils.tr("sensorthingstool.graphOptions.xAxisAtTop")}</label>
+                    </div>
+                </div>
 
-                        <tr>
-                            <td><b>{LocaleUtils.tr("sensorthingstool.graphOptions.yAxis")}</b></td>
-                            {this.state.graph.y2.enabled ? (<td />) : null}
-                            <td>
-                                <label><input checked={this.state.graph.y2.enabled} onChange={(ev) => this.updateGraphAxis('y2', {enabled: ev.target.checked})} type="checkbox"  /> {LocaleUtils.tr("sensorthingstool.graphOptions.toggleSecondYAxis")}</label>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>{LocaleUtils.tr("sensorthingstool.graphOptions.yMax")}:</td>
-                            <td>
-                                <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y', {max: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y.max} />
-                                <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y', {max: null})}>
-                                    <Icon icon="clear" />
-                                </button>
-                            </td>
-                            {this.state.graph.y2.enabled ? (
-                                <td>
-                                    <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y2', {max: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y2.max} />
-                                    <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y2', {max: null})}>
-                                        <Icon icon="clear" />
-                                    </button>
-                                </td>
-                            ) : null}
-                        </tr>
-                        <tr>
-                            <td>{LocaleUtils.tr("sensorthingstool.graphOptions.yMin")}:</td>
-                            <td>
-                                <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y', {min: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y.min} />
-                                <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y', {min: null})}>
-                                    <Icon icon="clear" />
-                                </button>
-                            </td>
-                            {this.state.graph.y2.enabled ? (
-                                <td>
-                                    <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y2', {min: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y2.min} />
-                                    <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y2', {min: null})}>
-                                        <Icon icon="clear" />
-                                    </button>
-                                </td>
-                            ) : null}
-                        </tr>
-                        <tr>
-                            <td />
-                            <td>
-                                <label><input checked={this.state.graph.y.reverse} onChange={(ev) => this.updateGraphAxis('y', {reverse: ev.target.checked})} type="checkbox" /> {LocaleUtils.tr("sensorthingstool.graphOptions.reverseAxis")}</label>
-                            </td>
-                            {this.state.graph.y2.enabled ? (
-                                <td>
-                                    <label><input checked={this.state.graph.y2.reverse} onChange={(ev) => this.updateGraphAxis('y2', {reverse: ev.target.checked})} type="checkbox" /> {LocaleUtils.tr("sensorthingstool.graphOptions.reverseAxis")}</label>
-                                </td>
-                            ) : null}
-                        </tr>
-                        {this.state.graph.y2.enabled ? (
-                            <tr>
-                                <td />
-                                <td />
-                                <td>
-                                    <label><input checked={this.state.graph.y2.showGrid} onChange={(ev) => this.updateGraphAxis('y2', {showGrid: ev.target.checked})} type="checkbox" /> {LocaleUtils.tr("sensorthingstool.graphOptions.toggleGridLines")}</label>
-                                </td>
-                            </tr>
-                        ) : null}
-                    </tbody>
-                </table>
+                <div className="sensor-things-graph-options-group">
+                    <div className="sensor-things-graph-options-title">{LocaleUtils.tr("sensorthingstool.graphOptions.yAxis")}</div>
+                    <div className="sensor-things-graph-options-content">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td />
+                                    {this.state.graph.y2.enabled ? (<td />) : null}
+                                    <td>
+                                        <label><input checked={this.state.graph.y2.enabled} onChange={(ev) => this.updateGraphAxis('y2', {enabled: ev.target.checked})} type="checkbox"  /> {LocaleUtils.tr("sensorthingstool.graphOptions.toggleSecondYAxis")}</label>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>{LocaleUtils.tr("sensorthingstool.graphOptions.yMax")}:</td>
+                                    <td>
+                                        <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y', {max: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y.max} />
+                                        <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y', {max: null})}>
+                                            <Icon icon="clear" />
+                                        </button>
+                                    </td>
+                                    {this.state.graph.y2.enabled ? (
+                                        <td>
+                                            <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y2', {max: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y2.max} />
+                                            <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y2', {max: null})}>
+                                                <Icon icon="clear" />
+                                            </button>
+                                        </td>
+                                    ) : null}
+                                </tr>
+                                <tr>
+                                    <td>{LocaleUtils.tr("sensorthingstool.graphOptions.yMin")}:</td>
+                                    <td>
+                                        <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y', {min: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y.min} />
+                                        <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y', {min: null})}>
+                                            <Icon icon="clear" />
+                                        </button>
+                                    </td>
+                                    {this.state.graph.y2.enabled ? (
+                                        <td>
+                                            <NumberInput decimals={3} onChange={value => this.updateGraphAxis('y2', {min: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.yAuto")} value={this.state.graph.y2.min} />
+                                            <button className={"button reset-button"} onClick={() => this.updateGraphAxis('y2', {min: null})}>
+                                                <Icon icon="clear" />
+                                            </button>
+                                        </td>
+                                    ) : null}
+                                </tr>
+                                <tr>
+                                    <td />
+                                    <td>
+                                        <label><input checked={this.state.graph.y.reverse} onChange={(ev) => this.updateGraphAxis('y', {reverse: ev.target.checked})} type="checkbox" /> {LocaleUtils.tr("sensorthingstool.graphOptions.reverseAxis")}</label>
+                                    </td>
+                                    {this.state.graph.y2.enabled ? (
+                                        <td>
+                                            <label><input checked={this.state.graph.y2.reverse} onChange={(ev) => this.updateGraphAxis('y2', {reverse: ev.target.checked})} type="checkbox" /> {LocaleUtils.tr("sensorthingstool.graphOptions.reverseAxis")}</label>
+                                        </td>
+                                    ) : null}
+                                </tr>
+                                {this.state.graph.y2.enabled ? (
+                                    <tr>
+                                        <td />
+                                        <td />
+                                        <td>
+                                            <label><input checked={this.state.graph.y2.showGrid} onChange={(ev) => this.updateGraphAxis('y2', {showGrid: ev.target.checked})} type="checkbox" /> {LocaleUtils.tr("sensorthingstool.graphOptions.toggleGridLines")}</label>
+                                        </td>
+                                    </tr>
+                                ) : null}
+
+                                <tr>
+                                    <td>{LocaleUtils.tr("sensorthingstool.graphOptions.threshold")}:</td>
+                                    <td>
+                                        <NumberInput decimals={3} onChange={value => this.updateCustomThreshold('y', {value: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.thresholdValue")} value={this.state.customThresholds.y.value} />
+                                        <button className={"button reset-button"} onClick={() => this.updateCustomThreshold('y', {value: null})}>
+                                            <Icon icon="clear" />
+                                        </button>
+                                    </td>
+                                    {this.state.graph.y2.enabled ? (
+                                        <td>
+                                            <NumberInput decimals={3} onChange={value => this.updateCustomThreshold('y2', {value: value})} placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.thresholdValue")} value={this.state.customThresholds.y2.value} />
+                                            <button className={"button reset-button"} onClick={() => this.updateCustomThreshold('y2', {value: null})}>
+                                                <Icon icon="clear" />
+                                            </button>
+                                        </td>
+                                    ) : null}
+                                </tr>
+                                <tr>
+                                    <td />
+                                    <td>
+                                        <input placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.thresholdLabel")} type="text" onChange={(ev) => this.updateCustomThreshold('y', {label: ev.target.value})} value={this.state.customThresholds.y.label} />
+                                        <button className={"button reset-button"} onClick={() => this.updateCustomThreshold('y', {label: ""})} >
+                                            <Icon icon="clear" />
+                                        </button>
+                                    </td>
+                                    {this.state.graph.y2.enabled ? (
+                                        <td>
+                                            <input placeholder={LocaleUtils.tr("sensorthingstool.graphOptions.thresholdLabel")} type="text" onChange={(ev) => this.updateCustomThreshold('y2', {label: ev.target.value})} value={this.state.customThresholds.y2.label} />
+                                            <button className={"button reset-button"} onClick={() => this.updateCustomThreshold('y2', {label: ""})} >
+                                                <Icon icon="clear" />
+                                            </button>
+                                        </td>
+                                    ) : null}
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         );
     };
@@ -1080,6 +1142,17 @@ class SensorThingsTool extends React.Component {
                 ...state.graph,
                 [axis]: {
                     ...state.graph[axis],
+                    ...diff
+                }
+            }
+        }));
+    };
+    updateCustomThreshold = (axis, diff) => {
+        this.setState((state) => ({
+            customThresholds: {
+                ...state.customThresholds,
+                [axis]: {
+                    ...state.customThresholds[axis],
                     ...diff
                 }
             }
