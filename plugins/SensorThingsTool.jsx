@@ -22,6 +22,7 @@ import {
 } from 'chart.js';
 import { getRelativePosition } from 'chart.js/helpers';
 import 'chartjs-adapter-dayjs-4';
+import annotationPlugin from 'chartjs-plugin-annotation';
 import {Line} from 'react-chartjs-2';
 import dayjs from 'dayjs';
 import FileSaver from 'file-saver';
@@ -45,7 +46,8 @@ ChartJS.register(
     LineElement,
     Legend,
     Tooltip,
-    TimeScale
+    TimeScale,
+    annotationPlugin
 );
 
 class SensorThingsTool extends React.Component {
@@ -128,17 +130,38 @@ class SensorThingsTool extends React.Component {
          *      x: {                                                // x-axis config
          *          min: <graph period start as Unix timestamp>,    // null if none
          *          max: <graph period end as Unix timestamp>,      // null if none
+         *          thresholds: [                                   // list of threshold values for this axis
+         *              {
+         *                  label: <threshold line label>,
+         *                  value: <threshold value>,
+         *                  color: [<r>, <g>, <b>] (0-255)          // threshold line color
+         *              }
+         *          ],
          *          positionAtTop: <whether to position the x-axis at the top or bottom>
          *      },
          *      y: {                                                // y-axis config
          *          min: <graph min value>,                         // null if auto
          *          max: <graph max value>,                         // null if auto
+         *          thresholds: [                                   // list of threshold values for this axis
+         *              {
+         *                  label: <threshold line label>,
+         *                  value: <threshold value>,
+         *                  color: [<r>, <g>, <b>] (0-255)          // threshold line color
+         *              }
+         *          ],
          *          reverse: <whether to reverse direction of y-axis>
          *      },
          *      y2: {                                               // second y-axis config
          *          enabled: <whether second y-axis is shown>,
          *          min: <graph min value>,                         // null if auto
          *          max: <graph max value>,                         // null if auto
+         *          thresholds: [                                   // list of threshold values for this axis
+         *              {
+         *                  label: <threshold line label>,
+         *                  value: <threshold value>,
+         *                  color: [<r>, <g>, <b>] (0-255)          // threshold line color
+         *              }
+         *          ],
          *          reverse: <whether to reverse direction of second y-axis>,
          *          showGrid: <whether grid lines for second y-axis are shown>
          *      },
@@ -152,7 +175,7 @@ class SensorThingsTool extends React.Component {
          *                  }
          *              ],
          *              loading: <whether Observations are still loading>,
-         *              color: [<r>, <g>, <b>]          // line color of this dataset in the graph
+         *              color: [<r>, <g>, <b>] (0-255)  // line color of this dataset in the graph
          *          }
          *      ]
          *  }
@@ -161,17 +184,20 @@ class SensorThingsTool extends React.Component {
             x: {
                 min: null, // Unix timestamp
                 max: null, // Unix timestamp
+                thresholds: [],
                 positionAtTop: false
             },
             y: {
                 min: null,
                 max: null,
+                thresholds: [],
                 reverse: false
             },
             y2: {
                 enabled: false,
                 min: null,
                 max: null,
+                thresholds: [],
                 reverse: false,
                 showGrid: true
             },
@@ -283,6 +309,10 @@ class SensorThingsTool extends React.Component {
                 },
                 mouseZoomPlugin: {
                     events: ['mousemove', 'mouseout', 'mousedown', 'mouseup', 'touchmove', 'touchstart', 'touchend']
+                },
+                annotation: {
+                    annotations: {
+                    }
                 }
             },
             events: ['mousemove', 'mouseout', 'mousedown', 'mouseup', 'click', 'touchmove', 'touchstart', 'touchend'],
@@ -401,6 +431,20 @@ class SensorThingsTool extends React.Component {
             }
         }
 
+        // add threshold lines
+        const annotationsOptions = options.plugins.annotation.annotations;
+        this.state.graph.x.thresholds.forEach((threshold, idx) => {
+            annotationsOptions['x' + idx] = this.optionsForThresholdLine('x', threshold.label, threshold.value, threshold.color);
+        });
+        this.state.graph.y.thresholds.forEach((threshold, idx) => {
+            annotationsOptions['y' + idx] = this.optionsForThresholdLine('y', threshold.label, threshold.value, threshold.color);
+        });
+        if (this.state.graph.y2.enabled) {
+            this.state.graph.y2.thresholds.forEach((threshold, idx) => {
+                annotationsOptions['yRight' + idx] = this.optionsForThresholdLine('yRight', threshold.label, threshold.value, threshold.color);
+            });
+        }
+
         const intervalOptions = [
             {label: LocaleUtils.tr("sensorthingstool.intervalOptions.custom"), interval: -1}, // custom
             {label: LocaleUtils.tr("sensorthingstool.intervalOptions.hour"), interval: 3600000}, // 3600 * 1000 ms
@@ -509,6 +553,94 @@ class SensorThingsTool extends React.Component {
                 </div>
             </div>
         );
+    };
+    // NOTE: color as [<r>, <g>, <b>] (0-255)
+    optionsForThresholdLine = (axisID, label, thresholdValue, color) => {
+        const annotationOptions = {
+            type: 'line',
+            scaleID: axisID,
+            value: thresholdValue,
+            borderColor: `rgba(${color.join(',')},0.8)`,
+            borderWidth: 2,
+            drawTime: 'beforeDatasetsDraw',
+            label: {
+                content: label,
+                backgroundColor: 'transparent',
+                color: '#666666',
+                display: true,
+                padding: 2,
+                font: {
+                    weight: 'normal'
+                }
+            }
+        };
+        if (axisID === 'x') {
+            // vertical threshold line for x-axis
+            annotationOptions.label = {
+                ...annotationOptions.label,
+                position: 'end',
+                rotation: -90,
+                xAdjust: (context, opts) => {
+                    // get pixel distance to left and right borders of graph area
+                    const pixelPos = context.chart.scales.x.getPixelForValue(opts.value);
+                    const diffLeft = pixelPos - context.chart.chartArea.left;
+                    const diffRight = context.chart.chartArea.right - pixelPos;
+
+                    if (diffLeft < 0 || diffRight < 0) {
+                        // threshold value is outside visible area
+                        return 0;
+                    }
+
+                    // adjust offset to position the label to the side of the threshold line
+                    // place left of line
+                    let offset = -7;
+                    if (diffLeft < 9) {
+                        // adjust offset to place right of line
+                        offset = 3 + diffLeft * 0.5;
+                    } else if (diffLeft < 16) {
+                        // place right of line
+                        offset = 11;
+                    } else if (diffRight < 11) {
+                        // adjust offset to place left of line
+                        offset = -diffRight * 0.5;
+                    }
+                    return offset;
+                }
+            };
+        } else {
+            // horizontal threshold line for y-axis
+            annotationOptions.label = {
+                ...annotationOptions.label,
+                position: (axisID === 'yRight') ? 'end' : 'start',
+                yAdjust: (context, opts) => {
+                    // get pixel distance to top and bottom borders of graph area
+                    const pixelPos = context.chart.scales[opts.scaleID].getPixelForValue(opts.value);
+                    const diffTop = pixelPos - context.chart.chartArea.top;
+                    const diffBottom = context.chart.chartArea.bottom - pixelPos;
+
+                    if (diffTop < 0 || diffBottom < 0) {
+                        // threshold value is outside visible area
+                        return 0;
+                    }
+
+                    // adjust offset to position the label above or below the threshold line
+                    // place above line
+                    let offset = -7;
+                    if (diffTop < 9) {
+                        // adjust offset to place below line
+                        offset = 3 + diffTop * 0.5;
+                    } else if (diffTop < 16) {
+                        // place below line
+                        offset = 11;
+                    } else if (diffBottom < 11) {
+                        // adjust offset to place above line
+                        offset = -diffBottom * 0.5;
+                    }
+                    return offset;
+                }
+            };
+        }
+        return annotationOptions;
     };
     renderTimeSlider = (fullDatastreamsPeriodBegin, fullDatastreamsPeriodEnd) => {
         const timeSliderBegin = fullDatastreamsPeriodBegin;
