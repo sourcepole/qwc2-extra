@@ -51,6 +51,10 @@ div.plot-info-result-body table {
     border-color: @item_border@;
 }
 
+div.plot-info-result-body table td:first-child {
+    width: 33%;
+}
+
 div.plot-info-result-body table td {
     padding: 0.125em 0.25em;
 }
