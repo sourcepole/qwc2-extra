@@ -7,15 +7,16 @@
  */
 
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+
+import {XMLParser} from 'fast-xml-parser';
 import isEmpty from 'lodash.isempty';
-import url from 'url';
-import {v1 as uuidv1} from 'uuid';
-import xml2js from 'xml2js';
+import PropTypes from 'prop-types';
 import {LayerRole, addLayer, removeLayer, changeLayerProperty} from 'qwc2/actions/layers';
 import Icon from 'qwc2/components/Icon';
 import LocaleUtils from 'qwc2/utils/LocaleUtils';
+import url from 'url';
+import {v1 as uuidv1} from 'uuid';
 require('./style/OerebDocument.css');
 
 const Lang = "de";
@@ -54,15 +55,14 @@ class Oereb2Document extends React.Component {
         if (typeof oerebDoc === "object") {
             return oerebDoc;
         } else {
-            let json;
-            const options = {
-                tagNameProcessors: [xml2js.processors.stripPrefix],
-                valueProcessors: [(text) => decodeURIComponent(text)],
-                explicitArray: false
+            const parserOpts = {
+                processTagValue: (value) => decodeURIComponent(value),
+                isArray: () => false,
+                ignoreAttributes: false,
+                attributeNamePrefix: "",
+                removeNSPrefix: true
             };
-            xml2js.parseString(oerebDoc, options, (err, result) => {
-                json = result;
-            });
+            const json = (new XMLParser(parserOpts)).parse(oerebDoc);
             // Case sensitivity difference between XML and JSON
             json.GetExtractByIdResponse.extract = json.GetExtractByIdResponse.Extract;
             return json;
@@ -72,16 +72,15 @@ class Oereb2Document extends React.Component {
         const extract = this.state.oerebDoc.GetExtractByIdResponse.extract;
 
         const toplevelThemes = {};
-        this.ensureArray(extract.ConcernedTheme).forEach(theme => {
+        this.ensureArray(extract.ConcernedTheme).forEach(ctheme => {
 
-            const extract = this.state.oerebDoc.GetExtractByIdResponse.extract;
             const landOwnRestr = this.ensureArray(extract.RealEstate.RestrictionOnLandownership);
 
             let concernedThemes = [];
-            if (theme.SubCode) {
-                concernedThemes = landOwnRestr.filter(entry => entry.Theme.Code === theme.Code && entry.Theme.SubCode === theme.SubCode);
+            if (ctheme.SubCode) {
+                concernedThemes = landOwnRestr.filter(entry => entry.Theme.Code === ctheme.Code && entry.Theme.SubCode === ctheme.SubCode);
             } else {
-                concernedThemes = landOwnRestr.filter(entry => entry.Theme.Code === theme.Code);
+                concernedThemes = landOwnRestr.filter(entry => entry.Theme.Code === ctheme.Code);
             }
 
             // separate toplevel entries depending on LawStatus
@@ -139,7 +138,7 @@ class Oereb2Document extends React.Component {
                 })}
             </div>
         );
-    }
+    };
     renderTheme = (theme) => {
         const regulations = {};
         const legalbasis = {};
@@ -248,7 +247,7 @@ class Oereb2Document extends React.Component {
                                         <div className="oereb-document-toggle-fulllegend" onClick={() => this.toggleFullLegend(fullLegendId)}>
                                             <a>{LocaleUtils.tr(toggleLegendMsgId)}</a>
                                         </div>
-                                        {this.state.expandedLegend === fullLegendId ? (<div className="oereb-document-fulllegend"><img src={subthemedata.fullLegend} /></div>) : null}
+                                        {this.state.expandedLegend === fullLegendId ? (<div className="oereb-document-fulllegend"><img src={legendEntry.fullLegend} /></div>) : null}
                                     </td>
                                 </tr>
                             ) : null
@@ -333,13 +332,13 @@ class Oereb2Document extends React.Component {
         for (const layer of layers) {
             this.props.removeLayer(layer.id);
         }
-    }
+    };
     toggleTheme = (theme) => {
-        const expandedTheme = this.state.expandedTheme === theme.id ? null : theme.id;
-        this.setState({
-            expandedTheme: expandedTheme,
+        this.setState(state => ({
+            expandedTheme: state.expandedTheme === theme.id ? null : theme.id,
             expandedLegend: null
-        });
+        }));
+        const expandedTheme = this.state.expandedTheme === theme.id ? null : theme.id;
         this.removeHighlighLayer();
         if (!expandedTheme) {
             return;

@@ -7,26 +7,27 @@
  */
 
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import isEmpty from 'lodash.isempty';
+
 import axios from 'axios';
 import FileSaver from 'file-saver';
-import {logAction} from 'qwc2/actions/logging';
-import ConfigUtils from 'qwc2/utils/ConfigUtils';
-import {changeSelectionState} from 'qwc2/actions/selection';
-import {clearSearch} from 'qwc2/actions/search';
-import {setCurrentTask} from 'qwc2/actions/task';
+import isEmpty from 'lodash.isempty';
+import PropTypes from 'prop-types';
 import {LayerRole, addThemeSublayer, addLayerFeatures, removeLayer} from 'qwc2/actions/layers';
-import ResizeableWindow from 'qwc2/components/ResizeableWindow';
-import Spinner from 'qwc2/components/Spinner';
-import Icon from 'qwc2/components/Icon';
+import {logAction} from 'qwc2/actions/logging';
 import {zoomToPoint} from 'qwc2/actions/map';
-import {UrlParams} from 'qwc2/utils/PermaLinkUtils';
+import {setCurrentTask} from 'qwc2/actions/task';
+import Icon from 'qwc2/components/Icon';
+import MapSelection from 'qwc2/components/MapSelection';
+import ResizeableWindow from 'qwc2/components/ResizeableWindow';
+import Spinner from 'qwc2/components/widgets/Spinner';
+import ConfigUtils from 'qwc2/utils/ConfigUtils';
 import CoordinatesUtils from 'qwc2/utils/CoordinatesUtils';
 import LocaleUtils from 'qwc2/utils/LocaleUtils';
 import MapUtils from 'qwc2/utils/MapUtils';
+import {UrlParams} from 'qwc2/utils/PermaLinkUtils';
 import VectorLayerUtils from 'qwc2/utils/VectorLayerUtils';
+
 import './style/PlotInfoTool.css';
 
 
@@ -34,15 +35,12 @@ class PlotInfoTool extends React.Component {
     static propTypes = {
         addLayerFeatures: PropTypes.func,
         addThemeSublayer: PropTypes.func,
-        changeSelectionState: PropTypes.func,
-        clearSearch: PropTypes.func,
         currentTask: PropTypes.string,
         customInfoComponents: PropTypes.object,
         infoQueries: PropTypes.array,
         logAction: PropTypes.func,
         map: PropTypes.object,
         removeLayer: PropTypes.func,
-        selection: PropTypes.object,
         setCurrentTask: PropTypes.func,
         theme: PropTypes.object,
         themeLayerRestorer: PropTypes.func,
@@ -81,9 +79,6 @@ class PlotInfoTool extends React.Component {
             this.activated();
         } else if (this.props.currentTask !== 'PlotInfoTool' && prevProps.currentTask === 'PlotInfoTool') {
             this.deactivated();
-        } else if (this.props.currentTask === 'PlotInfoTool' && this.props.selection.point &&
-           this.props.selection !== prevProps.selection) {
-            this.queryBasicInfoAtPoint(this.props.selection.point);
         }
 
         if (this.state.plotInfo) {
@@ -111,25 +106,42 @@ class PlotInfoTool extends React.Component {
         }
     }
     render() {
-        if (!this.state.plotInfo || this.state.plotInfo.length === 0) {
+        if (this.props.currentTask !== 'PlotInfoTool') {
             return null;
         }
-        let scrollable = false;
-        if (this.state.expandedInfo) {
-            const entry = this.props.infoQueries.find(e => e.key === this.state.expandedInfo);
-            if (entry) {
-                scrollable = entry.scrollmode === "parent";
+        let resultDialog = null;
+
+        if (!isEmpty(this.state.plotInfo)) {
+            let scrollable = false;
+            if (this.state.expandedInfo) {
+                const entry = this.props.infoQueries.find(e => e.key === this.state.expandedInfo);
+                if (entry) {
+                    scrollable = entry.scrollmode === "parent";
+                }
             }
+            resultDialog = (
+                <ResizeableWindow icon="plot_info" initialHeight={this.props.windowSize.height}
+                    initialWidth={this.props.windowSize.width} initialX={0}
+                    initialY={0} key="PlotInfoWindow" onClose={() => this.props.setCurrentTask(null)}
+                    scrollable={scrollable} title={LocaleUtils.tr("appmenu.items.PlotInfoTool")}
+                >
+                    {this.renderBody()}
+                </ResizeableWindow>
+            );
         }
-        return (
-            <ResizeableWindow icon="plot_info" initialHeight={this.props.windowSize.height}
-                initialWidth={this.props.windowSize.width} initialX={0}
-                initialY={0} onClose={() => this.props.setCurrentTask(null)}
-                scrollable={scrollable} title="appmenu.items.PlotInfoTool"
-            >
-                {this.renderBody()}
-            </ResizeableWindow>
-        );
+        const assetsPath = ConfigUtils.getAssetsPath();
+        const selectionStyleOptions = {
+            fillColor: [0, 0, 0, 0],
+            strokeColor: [0, 0, 0, 0]
+        };
+        return [resultDialog, (
+            <MapSelection
+                active cursor={'url("' + assetsPath + '/img/plot-info-marker.png") 12 12, default'}
+                geomType="Point"
+                geometryChanged={geom => this.queryBasicInfoAtPoint(geom.coordinates)} key="MapSelection"
+                styleOptions={selectionStyleOptions}
+            />
+        )];
     }
     renderBody = () => {
         const plotServiceUrl = ConfigUtils.getConfigProp("plotInfoService").replace(/\/$/, '');
@@ -232,21 +244,14 @@ class PlotInfoTool extends React.Component {
         }
     };
     activated = () => {
-        const assetsPath = ConfigUtils.getAssetsPath();
-        this.props.changeSelectionState({geomType: 'Point', style: 'default', styleOptions: {
-            fillColor: [0, 0, 0, 0],
-            strokeColor: [0, 0, 0, 0]
-        }, cursor: 'url("' + assetsPath + '/img/plot-info-marker.png") 12 12, default'});
         this.props.themeLayerRestorer(this.props.toolLayers, null, layers => {
             this.props.addThemeSublayer({sublayers: layers});
         });
     };
     deactivated = () => {
         this.setState({plotInfo: null, currentPlot: null, expandedInfo: null, expandedInfoData: null, pendingPdfs: []});
-        this.props.changeSelectionState({geomType: null});
     };
     queryBasicInfoAtPoint = (point) => {
-        this.props.clearSearch();
         const serviceUrl = ConfigUtils.getConfigProp("plotInfoService").replace(/\/$/, '') + '/';
         const params = {
             x: point[0],
@@ -316,23 +321,15 @@ class PlotInfoTool extends React.Component {
     };
 }
 
-const selector = state => ({
-    selection: state.selection,
+export default connect(state => ({
     map: state.map,
     theme: state.theme.current,
     currentTask: state.task.id
-});
-
-export default connect(
-    selector,
-    {
-        changeSelectionState: changeSelectionState,
-        setCurrentTask: setCurrentTask,
-        addThemeSublayer: addThemeSublayer,
-        addLayerFeatures: addLayerFeatures,
-        removeLayer: removeLayer,
-        zoomToPoint: zoomToPoint,
-        clearSearch: clearSearch,
-        logAction: logAction
-    }
-)(PlotInfoTool);
+}), {
+    setCurrentTask: setCurrentTask,
+    addThemeSublayer: addThemeSublayer,
+    addLayerFeatures: addLayerFeatures,
+    removeLayer: removeLayer,
+    zoomToPoint: zoomToPoint,
+    logAction: logAction
+})(PlotInfoTool);

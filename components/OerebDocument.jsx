@@ -7,14 +7,15 @@
  */
 
 import React from 'react';
-import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+
+import {XMLParser} from 'fast-xml-parser';
 import isEmpty from 'lodash.isempty';
-import url from 'url';
-import xml2js from 'xml2js';
+import PropTypes from 'prop-types';
 import {LayerRole, addLayer, removeLayer, changeLayerProperty} from 'qwc2/actions/layers';
 import Icon from 'qwc2/components/Icon';
 import LocaleUtils from 'qwc2/utils/LocaleUtils';
+import url from 'url';
 require('./style/OerebDocument.css');
 
 const Lang = "de";
@@ -53,15 +54,14 @@ class OerebDocument extends React.Component {
         if (typeof oerebDoc === "object") {
             return oerebDoc;
         } else {
-            let json;
-            const options = {
-                tagNameProcessors: [xml2js.processors.stripPrefix],
-                valueProcessors: [(text) => decodeURIComponent(text)],
-                explicitArray: false
+            const parserOpts = {
+                processTagValue: (value) => decodeURIComponent(value),
+                isArray: () => false,
+                ignoreAttributes: false,
+                attributeNamePrefix: "",
+                removeNSPrefix: true
             };
-            xml2js.parseString(oerebDoc, options, (err, result) => {
-                json = result;
-            });
+            const json = (new XMLParser(parserOpts)).parse(oerebDoc);
             // Case sensitivity difference between XML and JSON
             json.GetExtractByIdResponse.extract = json.GetExtractByIdResponse.Extract;
             return json;

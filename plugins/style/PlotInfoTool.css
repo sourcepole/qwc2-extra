@@ -8,10 +8,10 @@ div.resizeable-window-body-nonscrollable div.plot-info-dialog-body {
 }
 
 div.plot-info-dialog-header {
-    background-color: white;
+    background-color: var(--list-bg-color);
     border-width: 1px 1px 0 1px ;
     border-style: solid;
-    border-color: @item_border@;
+    border-color: var(--border-color);
     width: 100%;
     font-size: small;
     flex: 0 1 auto;
@@ -22,8 +22,8 @@ div.plot-info-dialog-header {
 div.plot-info-result-header {
     border-width: 0 0 1px 0;
     border-style: solid;
-    border-color: @item_border@;
-    background-color: @button_bg@;
+    border-color: var(--border-color);
+    background-color: var(--button-bg-color);
     padding: 0.25em;
     flex: 0 0 auto;
     display: flex;
@@ -48,7 +48,7 @@ div.plot-info-result-body table {
     width: 100%;
     border-width: 0 0 1px 0;
     border-style: solid;
-    border-color: @item_border@;
+    border-color: var(--border-color);
 }
 
 div.plot-info-result-body table td:first-child {
@@ -72,9 +72,9 @@ div.plot-info-dialog-queries {
 }
 
 div.plot-info-dialog-query-title {
-    border: 1px solid @item_border@;
+    border: 1px solid var(--border-color);
     margin-top: 0.5em;
-    background-color: @button_bg@;
+    background-color: var(--button-bg-color);
     height: 2em;
     cursor: pointer;
     display: flex;
@@ -93,11 +93,10 @@ div.plot-info-dialog-query-title > span:not(.icon) {
 
 div.plot-info-dialog-query-title > span.icon-pdf,
 div.plot-info-dialog-query-title > div.spinner {
-    border-left: 1px solid @item_border@;
-    line-height: 2em;
+    border-left: 1px solid var(--border-color);
     padding: 0 0.5em;
     width: 2em;
-    height: 2em;
+    height: 100%;
 }
 
 div.plot-info-dialog-query-title > div.spinner {
@@ -105,7 +104,8 @@ div.plot-info-dialog-query-title > div.spinner {
 }
 
 div.plot-info-dialog-query-title > span.icon-pdf:hover {
-    background-color: white;
+    background-color: var(--button-bg-color-hover);
+    color: var(--button-text-color-hover);
 }
 
 div.plot-info-dialog-query-loading,
@@ -125,16 +125,16 @@ div.plot-info-dialog-query-loading div.spinner {
 }
 
 div.plot-info-dialog-query > div:nth-child(2) {
-    border-top: 1px solid @item_border@;
+    border-top: 1px solid var(--border-color);
     flex: 1 1 auto;
 }
 
 div.plot-info-dialog-query-result {
     border-width: 0 1px 1px 1px;
-    border-color: @item_border@;
+    border-color: var(--border-color);
     border-style: solid;
     width: 100%;
-    background-color: white;
+    background-color: var(--list-bg-color);
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
