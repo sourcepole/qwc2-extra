@@ -1,6 +1,11 @@
 {
   "locale": "en-US",
   "messages": {
+    "appmenu": {
+      "items": {
+        "PlotInfoTool": "Real Estate Information"
+      }
+    },
     "oereb": {
       "concernedThemes": "Concerned themes",
       "fundationdatastate": "Cadastral surveying data. Status of the cadastral survey:",
@@ -26,11 +31,6 @@
     "plotinfotool": {
       "failed": "Failed to load data",
       "loading": "Loading data..."
-    },
-    "appmenu": {
-      "items": {
-        "PlotInfoTool": "Real Estate Information"
-      }
     },
     "plotdescr": {
       "title": "Plot description",

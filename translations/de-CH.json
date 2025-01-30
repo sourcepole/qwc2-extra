@@ -1,6 +1,11 @@
 {
   "locale": "de-DE",
   "messages": {
+    "appmenu": {
+      "items": {
+        "PlotInfoTool": "Grundstücksinformation"
+      }
+    },
     "oereb": {
       "concernedThemes": "Betroffene Themen",
       "fundationdatastate": "Daten der amtlichen Vermessung. Stand der amtlichen Vermessung:",
@@ -26,11 +31,6 @@
     "plotinfotool": {
       "failed": "Datenabfrage gescheitert",
       "loading": "Daten werden geladen..."
-    },
-    "appmenu": {
-      "items": {
-        "PlotInfoTool": "Grundstücksinformation"
-      }
     },
     "plotdescr": {
       "title": "Grundstücksbeschrieb",
