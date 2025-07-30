@@ -347,7 +347,7 @@ class Oereb2Document extends React.Component {
         const subThemeLayers = new Set();
         for (const entry of theme.entries) {
             const referenceWMS = this.localizedText(entry?.Map?.ReferenceWMS);
-            if (!referenceWMS || subThemeLayers.has(this.localizedText(referenceWMS))) {
+            if (!referenceWMS || subThemeLayers.has(referenceWMS)) {
                 continue;
             }
             const parts = url.parse(referenceWMS, true);
@@ -375,7 +375,7 @@ class Oereb2Document extends React.Component {
                 __oereb_highlight: true
             };
             this.props.addLayer(layer);
-            subThemeLayers.add(entry.Map.ReferenceWMS);
+            subThemeLayers.add(referenceWMS);
         }
     };
     toggleFullLegend = (legendId) => {
